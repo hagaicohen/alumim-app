@@ -112,8 +112,22 @@ $shadow-md:      0 4px 16px rgba(0,0,0,0.1);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
-  &:hover { background: lighten($primary-bg, 3%); border-style: solid; }
+
+  &:hover {
+    background: lighten($primary-bg, 3%);
+    border-style: solid;
+  }
+
+  &:focus,
+  &:focus-visible {
+    background: lighten($primary-bg, 3%);
+    border-style: solid;
+
+    outline: none;                 // remove browser default
+    border-color: $primary-light;  // re-declare to prevent UA override
+  }
 }
+
 .btn-remove {
   background: #fff5f5;
   border: 1px solid #fed7d7;
@@ -124,8 +138,25 @@ $shadow-md:      0 4px 16px rgba(0,0,0,0.1);
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  &:hover { background: #fed7d7; }
+  transition: all 0.15s;
+
+  &:hover {
+    background: #fed7d7;
+  }
+
+  &:focus,
+  &:focus-visible {
+    background: #fed7d7;
+    outline: none;                 // remove black ring
+    border-color: #c53030;         // strengthen border on focus
+  }
+
+  &:focus-visible {
+    outline: 2px solid #c53030;    // custom focus ring
+    outline-offset: 2px;
+  }
 }
+
 .btn-remove-child {
   width: 28px;
   height: 28px;
@@ -140,8 +171,24 @@ $shadow-md:      0 4px 16px rgba(0,0,0,0.1);
   justify-content: center;
   flex-shrink: 0;
   transition: all 0.15s;
-  &:hover { background: #fed7d7; }
+
+  &:hover {
+    background: #fed7d7;
+  }
+
+  &:focus,
+  &:focus-visible {
+    background: #fed7d7;
+    outline: none;
+    border-color: #c53030;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #c53030;
+    outline-offset: 2px;
+  }
 }
+
 
 // ── Simulator ──────────────────────────────────────────
 .simulator-container {
@@ -232,8 +279,24 @@ $shadow-md:      0 4px 16px rgba(0,0,0,0.1);
   align-items: center;
   justify-content: center;
   transition: all 0.15s;
-  &:hover { background: #fed7d7; }
+
+  &:hover {
+    background: #fed7d7;
+  }
+
+  &:focus,
+  &:focus-visible {
+    background: #fed7d7;
+    outline: none;              // remove black default ring
+    border-color: #c53030;      // stronger border on focus
+  }
+
+  &:focus-visible {
+    outline: 2px solid #c53030; // custom clean focus ring
+    outline-offset: 2px;
+  }
 }
+
 .child-sim-top {
   margin-bottom: 0.75rem;
 }
@@ -270,6 +333,7 @@ $shadow-md:      0 4px 16px rgba(0,0,0,0.1);
   position: relative;
   margin-bottom: 0.75rem;
 }
+
 .inst-dropdown-btn {
   display: flex;
   align-items: center;
@@ -286,8 +350,24 @@ $shadow-md:      0 4px 16px rgba(0,0,0,0.1);
   text-align: right;
   transition: border-color 0.2s;
   box-sizing: border-box;
-  &:hover { border-color: $primary-light; }
+
+  &:hover {
+    border-color: $primary-light;
+  }
+
+  &:focus,
+  &:focus-visible {
+    outline: none;                 // remove black browser ring
+    border-color: $primary-light;  // match hover behavior
+  }
+
+  &:focus-visible {
+    outline: 2px solid $primary-light; // custom accessible focus ring
+    outline-offset: 2px;
+  }
 }
+
+
 .dropdown-arrow {
   font-size: 0.7rem;
   color: $gray-400;
