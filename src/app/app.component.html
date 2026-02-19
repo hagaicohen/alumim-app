@@ -1,0 +1,328 @@
+<div class="app-wrapper">
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-content">
+      <div class="logo">
+        <img src="alumim.jpg" alt="סמל עלומים" class="logo-img" />
+        <div>
+          <h1 class="logo-title">עלומים</h1>
+          <p class="logo-sub">סימולטור הכנסה פנויה</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+
+    <div class="simulator-container">
+
+      <!-- ── Adults ── -->
+      <div class="sim-card">
+        <div class="sim-card-header">
+          <h3 class="sim-card-title">מבוגרים</h3>
+          @if (simulator.adults.length < 2) {
+            <button class="btn-add" (click)="addSimulatorAdult()">+ הוסף מבוגר/ת שני/ת</button>
+          }
+        </div>
+
+        <div class="adults-grid">
+          @for (adult of simulator.adults; track adult.id; let i = $index) {
+            <div class="adult-form">
+              <div class="adult-form-header">
+                <span class="adult-label">{{ i === 0 ? 'מבוגר/ת 1' : 'מבוגר/ת 2' }}</span>
+                @if (i === 1) {
+                  <button class="btn-remove" (click)="removeSimulatorAdult()">הסר</button>
+                }
+              </div>
+              <div class="edit-grid">
+                <div class="edit-field">
+                  <label>שם</label>
+                  <input type="text" [(ngModel)]="adult.name" placeholder="שם מלא" />
+                </div>
+                <div class="edit-field">
+                  <label>תאריך לידה</label>
+                  <input type="date" [(ngModel)]="adult.birthDate" [max]="todayStr" (input)="onDateInput($event, adult, 'birthDate')" />
+                </div>
+                <div class="edit-field">
+                  <label>שכר נטו (₪)</label>
+                  <input type="number" [(ngModel)]="adult.netSalary" min="0" placeholder="0" />
+                </div>
+                <div class="edit-field">
+                  <label>סטטוס</label>
+                  <select [(ngModel)]="adult.status">
+                    <option value="employee">עובד/ת</option>
+                    <option value="retiree">גמלאי/ת</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- ── Children ── -->
+      <div class="sim-card">
+        <div class="sim-card-header">
+          <h3 class="sim-card-title">ילדים ({{ simulator.children.length }})</h3>
+          <button class="btn-add" (click)="addSimulatorChild()">+ הוסף ילד/ה</button>
+        </div>
+
+        @if (simulator.children.length === 0) {
+          <p class="sim-empty-note">לא הוזנו ילדים — ניתן להוסיף ולבחור מוסדות חינוך לכל ילד</p>
+        }
+
+        @for (child of simulator.children; track child.id; let i = $index) {
+          <div class="child-sim-block">
+            <div class="child-sim-header">
+              <span class="child-sim-title">ילד {{ i + 1 }}</span>
+              <button class="btn-remove-x" (click)="removeSimulatorChild(i)" title="הסר ילד/ה">✕</button>
+            </div>
+            <div class="child-sim-top">
+              <div class="child-sim-basic edit-grid">
+                <div class="edit-field">
+                  <label>שם</label>
+                  <input type="text" [(ngModel)]="child.name" placeholder="שם הילד/ה" />
+                </div>
+                <div class="edit-field">
+                  <label>תאריך לידה</label>
+                    <input type="date" [(ngModel)]="child.birthDate" [max]="todayStr" (input)="onDateInput($event, child, 'birthDate')" />
+                  @if (childAgeError(child)) {
+                    <span class="date-error">{{ childAgeError(child) }}</span>
+                  }
+                </div>
+                @if (child.birthDate && childTypeLabel(child.birthDate)) {
+                  <div class="child-type-badge">{{ childTypeLabel(child.birthDate) }}</div>
+                }
+              </div>
+            </div>
+
+            <div class="institutions-section" (click)="$event.stopPropagation()">
+              <div class="institutions-label">מוסדות חינוך:</div>
+
+              <!-- Dropdown trigger -->
+              <div class="inst-dropdown-wrapper">
+                <button class="inst-dropdown-btn" (click)="toggleDropdown(child.id, $event)">
+                  <span>{{ child.selectedInstitutions.length === 0 ? 'בחר מוסדות...' : child.selectedInstitutions.length + ' מוסדות נבחרו' }}</span>
+                  <span class="dropdown-arrow">{{ isDropdownOpen(child.id) ? '▲' : '▼' }}</span>
+                </button>
+
+                @if (isDropdownOpen(child.id)) {
+                  <div class="inst-dropdown-panel">
+                    @for (inst of educationInstitutions; track inst.key) {
+                      <label class="inst-dropdown-item" [class.selected]="isInstitutionSelected(i, inst.key)">
+                        <input
+                          type="checkbox"
+                          [checked]="isInstitutionSelected(i, inst.key)"
+                          (change)="toggleInstitution(i, inst.key)"
+                        />
+                        <span class="inst-name">{{ inst.name }}</span>
+                        <span class="inst-cost">{{ inst.cost | number:'1.0-0' }} ₪</span>
+                      </label>
+                    }
+                  </div>
+                }
+              </div>
+
+              <!-- Selected bullet list -->
+              @if (getSelectedInstitutions(child).length > 0) {
+                <ul class="inst-selected-list">
+                  @for (inst of getSelectedInstitutions(child); track inst.key) {
+                    <li>
+                      <span class="inst-bullet">•</span>
+                      <span class="inst-selected-name">{{ inst.name }}</span>
+                      <span class="inst-selected-cost">{{ inst.cost | number:'1.0-0' }} ₪</span>
+                    </li>
+                  }
+                </ul>
+                <div class="inst-child-total">
+                  סה"כ ילד זה: <strong>{{ getChildEducationTotal(child) | number:'1.0-0' }} ₪</strong>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        @if (totalEducationCost > 0) {
+          <div class="inst-grand-total">
+            סה"כ חינוך לכל הילדים: <strong>{{ totalEducationCost | number:'1.0-0' }} ₪</strong>
+          </div>
+        }
+      </div>
+
+      <!-- ── Results ── -->
+      @if (hasAgeErrors) {
+        <div class="age-error-banner">
+          שגיאה: ילד/ה אינו/ה יכול/ה להיות מבוגר/ת מהורה. יש לתקן את תאריכי הלידה.
+        </div>
+      }
+      @if (!hasAgeErrors) {
+      @if (simulatorResult; as r) {
+
+        <div class="results-panel">
+
+          <!-- Headline -->
+          <div class="result-headline">
+            <div class="result-headline-label">הכנסה פנויה סופית</div>
+            <div class="result-headline-value">{{ r.finalDisposableIncome | number:'1.0-0' }} ₪</div>
+            <div class="result-headline-sub">לחודש</div>
+          </div>
+
+          <!-- Step A: Net Income -->
+          <div class="result-step">
+            <div class="result-step-title">
+              <span class="step-badge">א</span>
+              הכנסה נקייה
+            </div>
+            <div class="result-rows">
+              <div class="result-row">
+                <span>שכר נטו</span>
+                <span class="val-positive">{{ r.totalNetSalary | number:'1.0-0' }} ₪</span>
+              </div>
+              @if (r.childAllowance > 0) {
+                <div class="result-row">
+                  <span>קצבת ילדים ({{ simulator.children.length }} ילדים)</span>
+                  <span class="val-positive">{{ r.childAllowance | number:'1.0-0' }} ₪</span>
+                </div>
+              }
+              <div class="result-row">
+                <span>קהילה ({{ simulator.adults.length }} × 850 ₪)</span>
+                <span class="val-negative">({{ simulator.adults.length * 850 | number:'1.0-0' }}) ₪</span>
+              </div>
+              <div class="result-row">
+                <span>סיעוד ({{ simulator.adults.length }} × 50 ₪)</span>
+                <span class="val-negative">({{ simulator.adults.length * 50 | number:'1.0-0' }}) ₪</span>
+              </div>
+              <div class="result-row">
+                <span>עזרה הדדית ({{ simulator.adults.length }} × 60 ₪)</span>
+                <span class="val-negative">({{ simulator.adults.length * 60 | number:'1.0-0' }}) ₪</span>
+              </div>
+              <div class="result-row result-subtotal">
+                <span>הכנסה נקייה</span>
+                <span>{{ r.netIncome | number:'1.0-0' }} ₪</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step B: Safety Net + Tax -->
+          <div class="result-step">
+            <div class="result-step-title">
+              <span class="step-badge">ב</span>
+              רשת ביטחון ומס ערבות הדדית
+            </div>
+
+            <div class="result-sub-label">רשת ביטחון:</div>
+            <div class="result-rows">
+              @for (a of r.adultSafetyNets; track $index) {
+                <div class="result-row">
+                  <span>{{ a.name }} — {{ a.reason }}</span>
+                  <span>{{ a.amount | number:'1.0-0' }} ₪</span>
+                </div>
+              }
+              @for (c of r.childSafetyNets; track $index) {
+                <div class="result-row">
+                  <span>{{ c.name }} — {{ c.type }}</span>
+                  <span>{{ c.amount | number:'1.0-0' }} ₪</span>
+                </div>
+              }
+              <div class="result-row result-subtotal">
+                <span>סה"כ רשת ביטחון</span>
+                <span>{{ r.safetyNetTotal | number:'1.0-0' }} ₪</span>
+              </div>
+            </div>
+
+            <div class="result-sub-label">מס ערבות הדדית (פרוגרסיבי):</div>
+            <div class="result-rows">
+              <div class="result-row">
+                <span>(הכנסה נקייה - רשת ביטחון)</span>
+                <span>{{ r.taxableBase | number:'1.0-0' }} ₪</span>
+              </div>
+              @if (r.taxBreakdown.length === 0) {
+                <div class="result-row result-zero-tax">
+                  <span>אין מס — הכנסה נמוכה מרשת הביטחון</span>
+                  <span>0 ₪</span>
+                </div>
+              }
+              @for (tier of r.taxBreakdown; track $index) {
+                <div class="result-row">
+                  <span>{{ tier.tier }} ({{ tier.base | number:'1.0-0' }} ₪)</span>
+                  <span class="val-negative">({{ tier.tax | number:'1.0-0' }}) ₪</span>
+                </div>
+              }
+              <div class="result-row result-subtotal">
+                <span>סה"כ מס ערבות הדדית</span>
+                <span class="val-negative">({{ r.mutualSolidarityTax | number:'1.0-0' }}) ₪</span>
+              </div>
+            </div>
+
+            <div class="result-rows">
+              <div class="result-row result-subtotal">
+                <span>הכנסה פנויה (לפני חינוך)</span>
+                <span>{{ r.disposableIncome | number:'1.0-0' }} ₪</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step C: Education -->
+          @if (r.grossEducationCost > 0) {
+            <div class="result-step">
+              <div class="result-step-title">
+                <span class="step-badge">ג</span>
+                הוצאות חינוך וסבסוד
+              </div>
+              <div class="result-rows">
+                @for (ce of r.childEducationDetails; track $index) {
+                  @if (ce.institutions.length > 0) {
+                    <div class="result-row result-child-edu-header">
+                      <span>{{ ce.name }}</span>
+                      <span>{{ ce.totalCost | number:'1.0-0' }} ₪</span>
+                    </div>
+                    @for (inst of ce.institutions; track $index) {
+                      <div class="result-row result-indent">
+                        <span>— {{ inst.name }}</span>
+                        <span>{{ inst.cost | number:'1.0-0' }} ₪</span>
+                      </div>
+                    }
+                  }
+                }
+                <div class="result-row result-subtotal">
+                  <span>עלות חינוך ברוטו</span>
+                  <span>{{ r.grossEducationCost | number:'1.0-0' }} ₪</span>
+                </div>
+                <div class="result-row">
+                  <span>תקרת תשלום (25% מהכנסה פנויה)</span>
+                  <span>{{ r.familyPaymentCap | number:'1.0-0' }} ₪</span>
+                </div>
+                <div class="result-row">
+                  <span>עלות חינוך בפועל</span>
+                  <span class="val-negative">({{ r.actualEducationCost | number:'1.0-0' }}) ₪</span>
+                </div>
+                @if (r.kibbutzSubsidy > 0) {
+                  <div class="result-row result-subsidy">
+                    <span>סבסוד מהקיבוץ</span>
+                    <span class="val-subsidy">{{ r.kibbutzSubsidy | number:'1.0-0' }} ₪</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Final -->
+          <div class="result-final">
+            <span class="result-final-label">הכנסה פנויה סופית</span>
+            <span class="result-final-value">{{ r.finalDisposableIncome | number:'1.0-0' }} ₪</span>
+          </div>
+
+        </div>
+      }
+      }
+
+    </div>
+
+  </main>
+
+  <footer class="app-footer">
+    <p>עלומים &copy; {{ currentYear() }} &mdash; סימולטור הכנסה פנויה</p>
+  </footer>
+
+</div>

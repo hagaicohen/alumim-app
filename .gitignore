@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.netlify/
+.angular/
+.env
+.vscode/
+.idea/
+.claude/
+dev-proxy.js
+Thumbs.db
+.DS_Store
