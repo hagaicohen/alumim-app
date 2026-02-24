@@ -21,9 +21,10 @@
       <div class="sim-card">
         <div class="sim-card-header">
           <h3 class="sim-card-title">מבוגרים</h3>
-          @if (simulator.adults.length < 2) {
-            <button class="btn-add" (click)="addSimulatorAdult()">+ הוסף מבוגר/ת שני/ת</button>
-          }
+          <button class="btn-add"
+            (click)="addSimulatorAdult()"
+            [disabled]="simulator.adults.length >= 2 || hasSingleRetiree"
+            [class.btn-disabled]="simulator.adults.length >= 2 || hasSingleRetiree">+ הוסף מבוגר/ת שני/ת</button>
         </div>
 
         <div class="adults-grid">
@@ -45,16 +46,39 @@
                   <input type="date" [(ngModel)]="adult.birthDate" [max]="todayStr" (input)="onDateInput($event, adult, 'birthDate')" />
                 </div>
                 <div class="edit-field">
-                  <label>שכר נטו (₪)</label>
-                  <input type="number" [(ngModel)]="adult.netSalary" min="0" placeholder="0" />
-                </div>
-                <div class="edit-field">
                   <label>סטטוס</label>
-                  <select [(ngModel)]="adult.status">
+                  <select [ngModel]="getPrimaryStatus(adult)" (ngModelChange)="onPrimaryStatusChange(adult, $event)">
                     <option value="employee">עובד/ת</option>
                     <option value="retiree">גמלאי/ת</option>
                   </select>
                 </div>
+
+                @if (adult.status !== 'employee') {
+                  <div class="edit-field">
+                    <label>סוג גמלאי/ת</label>
+                    <select [ngModel]="adult.status" (ngModelChange)="onRetireeTypeChange(adult, $event)">
+                      <option value="retiree">גמלאי/ת</option>
+                      <option value="singleRetiree">גמלאי/ת יחיד/ה</option>
+                    </select>
+                  </div>
+                  <div class="edit-field">
+                    <label>קצבה חודשית (₪)</label>
+                    <input type="number" [value]="getRetireePension(adult)" readonly class="readonly-input" />
+                  </div>
+                  <div class="edit-field also-worker-field">
+                    <label class="checkbox-label">
+                      <input type="checkbox" [(ngModel)]="adult.alsoWorker" />
+                      גם עובד/ת (שכר נוסף)
+                    </label>
+                  </div>
+                }
+
+                @if (adult.status === 'employee' || adult.alsoWorker) {
+                  <div class="edit-field">
+                    <label>שכר נטו (₪)</label>
+                    <input type="number" [(ngModel)]="adult.netSalary" min="0" placeholder="0" />
+                  </div>
+                }
               </div>
             </div>
           }
@@ -175,10 +199,26 @@
               הכנסה נקייה
             </div>
             <div class="result-rows">
-              <div class="result-row">
-                <span>שכר נטו</span>
-                <span class="val-positive">{{ r.totalNetSalary | number:'1.0-0' }} ₪</span>
-              </div>
+              @for (ai of r.adultIncomes; track $index) {
+                @if (ai.pension > 0) {
+                  <div class="result-row">
+                    <span>קצבה{{ r.adultIncomes.length > 1 ? ' — ' + ai.name : '' }}</span>
+                    <span class="val-positive">{{ ai.pension | number:'1.0-0' }} ₪</span>
+                  </div>
+                }
+                @if (ai.workSalary > 0) {
+                  <div class="result-row">
+                    <span>{{ ai.pension > 0 ? 'שכר עבודה' : 'שכר נטו' }}{{ r.adultIncomes.length > 1 ? ' — ' + ai.name : '' }}</span>
+                    <span class="val-positive">{{ ai.workSalary | number:'1.0-0' }} ₪</span>
+                  </div>
+                }
+                @if (ai.pension === 0 && ai.workSalary === 0) {
+                  <div class="result-row">
+                    <span>שכר נטו{{ r.adultIncomes.length > 1 ? ' — ' + ai.name : '' }}</span>
+                    <span class="val-positive">0 ₪</span>
+                  </div>
+                }
+              }
               @if (r.childAllowance > 0) {
                 <div class="result-row">
                   <span>קצבת ילדים ({{ simulator.children.length }} ילדים)</span>
@@ -188,10 +228,6 @@
               <div class="result-row">
                 <span>קהילה ({{ simulator.adults.length }} × 850 ₪)</span>
                 <span class="val-negative">({{ simulator.adults.length * 850 | number:'1.0-0' }}) ₪</span>
-              </div>
-              <div class="result-row">
-                <span>סיעוד ({{ simulator.adults.length }} × 50 ₪)</span>
-                <span class="val-negative">({{ simulator.adults.length * 50 | number:'1.0-0' }}) ₪</span>
               </div>
               <div class="result-row">
                 <span>עזרה הדדית ({{ simulator.adults.length }} × 60 ₪)</span>
@@ -256,6 +292,12 @@
             </div>
 
             <div class="result-rows">
+              @if (r.safetyNetTopUp > 0) {
+                <div class="result-row result-topup">
+                  <span>השלמה לרשת ביטחון</span>
+                  <span class="val-positive">{{ r.safetyNetTopUp | number:'1.0-0' }} ₪</span>
+                </div>
+              }
               <div class="result-row result-subtotal">
                 <span>הכנסה פנויה (לפני חינוך)</span>
                 <span>{{ r.disposableIncome | number:'1.0-0' }} ₪</span>

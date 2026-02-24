@@ -9,7 +9,8 @@ interface SimulatorAdult {
   name: string;
   birthDate: string;
   netSalary: number;
-  status: 'employee' | 'retiree';
+  status: 'employee' | 'retiree' | 'singleRetiree';
+  alsoWorker: boolean;
 }
 
 interface SimulatorChild {
@@ -26,6 +27,7 @@ interface EducationInstitution {
 }
 
 interface SimulationResult {
+  adultIncomes: { name: string; pension: number; workSalary: number }[];
   totalNetSalary: number;
   childAllowance: number;
   communityTaxTotal: number;
@@ -33,6 +35,7 @@ interface SimulationResult {
   adultSafetyNets: { name: string; amount: number; reason: string }[];
   childSafetyNets: { name: string; type: string; amount: number }[];
   safetyNetTotal: number;
+  safetyNetTopUp: number;
   taxableBase: number;
   taxBreakdown: { tier: string; base: number; tax: number }[];
   mutualSolidarityTax: number;
@@ -51,6 +54,9 @@ interface SimulationResult {
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
+const PENSION_SINGLE_RETIREE = 11049;
+const PENSION_RETIREE        = 8140;
+
 const EDUCATION_INSTITUTIONS: EducationInstitution[] = [
   { key: 'dekel',         name: 'דקל',           cost: 2248 },
   { key: 'almogen',       name: 'אלמוגן',         cost: 1779 },
@@ -58,11 +64,11 @@ const EDUCATION_INSTITUTIONS: EducationInstitution[] = [
   { key: 'ganon',         name: 'גנון',           cost: 1700 },
   { key: 'gan',           name: 'גן',             cost: 1300 },
   { key: 'yesodi',        name: 'יסודי',          cost: 92   },
+  { key: 'chativaBS',     name: 'חטיבה ביס',      cost: 208  },
+  { key: 'tikhonBS',      name: 'תיכון ביס',      cost: 1667 },
   { key: 'beytKolel',     name: 'בית כולל',       cost: 1200 },
   { key: 'moadon',        name: 'מועדון',         cost: 800  },
-  { key: 'chativaBS',     name: 'חטיבה ביס',      cost: 208  },
   { key: 'chativaAlumim', name: 'חטיבה עלומים',   cost: 400  },
-  { key: 'tikhonBS',      name: 'תיכון ביס',      cost: 1667 },
   { key: 'tikhonAlumim',  name: 'תיכון עלומים',   cost: 200  },
 ];
 
@@ -79,9 +85,49 @@ export class AppComponent {
   openDropdowns = new Set<string>();
 
   simulator: { adults: SimulatorAdult[]; children: SimulatorChild[] } = {
-    adults: [{ id: 'a1', name: '', birthDate: '', netSalary: 0, status: 'employee' }],
+    adults: [{ id: 'a1', name: '', birthDate: '', netSalary: 0, status: 'employee', alsoWorker: false }],
     children: [],
   };
+
+  // ── Retiree pension helpers ─────────────────────────────
+
+  getRetireePension(adult: SimulatorAdult): number {
+    if (adult.status === 'singleRetiree') return PENSION_SINGLE_RETIREE;
+    if (adult.status === 'retiree')       return PENSION_RETIREE;
+    return 0;
+  }
+
+  getAdultTotalIncome(adult: SimulatorAdult): number {
+    const pension    = this.getRetireePension(adult);
+    const workSalary = (adult.status === 'employee' || adult.alsoWorker) ? (adult.netSalary || 0) : 0;
+    return pension + workSalary;
+  }
+
+  getPrimaryStatus(adult: SimulatorAdult): 'employee' | 'retiree' {
+    return adult.status === 'employee' ? 'employee' : 'retiree';
+  }
+
+  onPrimaryStatusChange(adult: SimulatorAdult, value: string): void {
+    if (value === 'employee') {
+      adult.status = 'employee';
+      adult.alsoWorker = false;
+    } else {
+      if (adult.status === 'employee') {
+        adult.status = 'retiree';
+      }
+    }
+  }
+
+  onRetireeTypeChange(adult: SimulatorAdult, value: string): void {
+    adult.status = value as 'retiree' | 'singleRetiree';
+    if (value === 'singleRetiree' && this.simulator.adults.length > 1) {
+      this.simulator.adults.splice(1, 1);
+    }
+  }
+
+  get hasSingleRetiree(): boolean {
+    return this.simulator.adults.some(a => a.status === 'singleRetiree');
+  }
 
   // ── Validation ─────────────────────────────────────────
 
@@ -186,6 +232,7 @@ export class AppComponent {
       birthDate: '',
       netSalary: 0,
       status: 'employee',
+      alsoWorker: false,
     });
   }
 
@@ -225,10 +272,16 @@ export class AppComponent {
 
   get simulatorResult(): SimulationResult | null {
     const adults = this.simulator.adults;
-    if (!adults.some(a => (a.netSalary || 0) > 0)) return null;
+    if (!adults.some(a => this.getAdultTotalIncome(a) > 0)) return null;
 
     // ── Step A: Net Income ────────────────────────────────
-    const totalNetSalary = adults.reduce((sum, a) => sum + (a.netSalary || 0), 0);
+    const adultIncomes = adults.map(a => ({
+      name:       a.name || 'מבוגר',
+      pension:    this.getRetireePension(a),
+      workSalary: (a.status === 'employee' || a.alsoWorker) ? (a.netSalary || 0) : 0,
+    }));
+
+    const totalNetSalary = adultIncomes.reduce((sum, a) => sum + a.pension + a.workSalary, 0);
 
     const childCount = this.simulator.children.length;
     let childAllowance = 0;
@@ -239,23 +292,18 @@ export class AppComponent {
     if (childCount >= 5) childAllowance += 173;
     childAllowance = Math.min(childAllowance, 1003);
 
-    const communityTaxTotal = adults.length * 960;
+    const communityTaxTotal = adults.length * 910;  // 850 קהילה + 60 עזרה הדדית
     const netIncome = totalNetSalary + childAllowance - communityTaxTotal;
 
     // ── Step B: Safety Net ────────────────────────────────
-    const isSingleRetiree  = adults.length === 1 && adults[0].status === 'retiree';
-    const isCoupleRetirees = adults.length === 2 && adults[0].status === 'retiree' && adults[1].status === 'retiree';
-
     const adultSafetyNets: { name: string; amount: number; reason: string }[] = [];
     for (const adult of adults) {
       let amount: number;
       let reason: string;
-      if (isSingleRetiree) {
+      if (adult.status === 'singleRetiree') {
         amount = 11049; reason = 'גמלאי/ת יחיד/ה';
-      } else if (isCoupleRetirees) {
-        amount = 7892;  reason = 'זוג גמלאים';
       } else if (adult.status === 'retiree') {
-        amount = 7892;  reason = 'גמלאי/ת';
+        amount = 8140;  reason = 'גמלאי/ת';
       } else {
         amount = 6248;  reason = 'חבר/ת עובד/ת';
       }
@@ -276,6 +324,9 @@ export class AppComponent {
     const safetyNetTotal =
       adultSafetyNets.reduce((s, a) => s + a.amount, 0) +
       childSafetyNets.reduce((s, c) => s + c.amount, 0);
+
+    // Safety net top-up: if net income < safety net, add the gap
+    const safetyNetTopUp = Math.max(0, safetyNetTotal - netIncome);
 
     // ── Progressive tax ────────────────────────────────────
     const taxableBase = Math.max(0, netIncome - safetyNetTotal);
@@ -302,7 +353,8 @@ export class AppComponent {
     }
     mutualSolidarityTax = Math.min(mutualSolidarityTax, 4000);
 
-    const disposableIncome = netIncome - mutualSolidarityTax;
+    // disposableIncome includes safety net top-up
+    const disposableIncome = netIncome - mutualSolidarityTax + safetyNetTopUp;
 
     // ── Step C: Education ──────────────────────────────────
     const childEducationDetails: {
@@ -331,8 +383,8 @@ export class AppComponent {
     const finalDisposableIncome = disposableIncome - actualEducationCost;
 
     return {
-      totalNetSalary, childAllowance, communityTaxTotal, netIncome,
-      adultSafetyNets, childSafetyNets, safetyNetTotal,
+      adultIncomes, totalNetSalary, childAllowance, communityTaxTotal, netIncome,
+      adultSafetyNets, childSafetyNets, safetyNetTotal, safetyNetTopUp,
       taxableBase, taxBreakdown, mutualSolidarityTax, disposableIncome,
       childEducationDetails, grossEducationCost,
       familyPaymentCap, actualEducationCost, kibbutzSubsidy, finalDisposableIncome,

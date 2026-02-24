@@ -99,6 +99,36 @@ $shadow-md:      0 4px 16px rgba(0,0,0,0.1);
 
   input[type="date"]   { direction: ltr; text-align: left; }
   input[type="number"] { direction: ltr; text-align: right; }
+
+  .readonly-input {
+    background: $gray-100 !important;
+    color: $gray-600;
+    cursor: default;
+    border-color: $gray-200 !important;
+  }
+}
+
+.also-worker-field {
+  justify-content: flex-end;
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: $gray-800;
+    cursor: pointer;
+    padding: 0.6rem 0;
+
+    input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: $primary;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+  }
 }
 
 .btn-add {
@@ -125,6 +155,13 @@ $shadow-md:      0 4px 16px rgba(0,0,0,0.1);
 
     outline: none;                 // remove browser default
     border-color: $primary-light;  // re-declare to prevent UA override
+  }
+
+  &.btn-disabled,
+  &[disabled] {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
   }
 }
 
@@ -559,6 +596,7 @@ $shadow-md:      0 4px 16px rgba(0,0,0,0.1);
   color: $gray-600;
 }
 .result-subsidy { background: #f0fdf4; }
+.result-topup   { background: #f0fdf4; }
 
 .val-positive { color: #276749; }
 .val-negative { color: #c53030; }
