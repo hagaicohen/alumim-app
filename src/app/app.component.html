@@ -133,7 +133,20 @@
 
                 @if (isDropdownOpen(child.id)) {
                   <div class="inst-dropdown-panel">
-                    @for (inst of educationInstitutions; track inst.key) {
+                    <div class="inst-group-label">חינוך חובה</div>
+                    @for (inst of mandatoryInstitutions; track inst.key) {
+                      <label class="inst-dropdown-item" [class.selected]="isInstitutionSelected(i, inst.key)">
+                        <input
+                          type="checkbox"
+                          [checked]="isInstitutionSelected(i, inst.key)"
+                          (change)="toggleInstitution(i, inst.key)"
+                        />
+                        <span class="inst-name">{{ inst.name }}</span>
+                        <span class="inst-cost">{{ inst.cost | number:'1.0-0' }} ₪</span>
+                      </label>
+                    }
+                    <div class="inst-group-label">חינוך רשות</div>
+                    @for (inst of optionalInstitutions; track inst.key) {
                       <label class="inst-dropdown-item" [class.selected]="isInstitutionSelected(i, inst.key)">
                         <input
                           type="checkbox"
@@ -202,7 +215,7 @@
               @for (ai of r.adultIncomes; track $index) {
                 @if (ai.pension > 0) {
                   <div class="result-row">
-                    <span>קצבה{{ r.adultIncomes.length > 1 ? ' — ' + ai.name : '' }}</span>
+                    <span>{{ ai.status === 'singleRetiree' ? 'קצבת גמלאי/ת יחיד/ה' : 'קצבה' }}{{ r.adultIncomes.length > 1 ? ' — ' + ai.name : '' }}</span>
                     <span class="val-positive">{{ ai.pension | number:'1.0-0' }} ₪</span>
                   </div>
                 }
@@ -267,35 +280,24 @@
               </div>
             </div>
 
-            <div class="result-sub-label">מס ערבות הדדית (פרוגרסיבי):</div>
-            <div class="result-rows">
-              <div class="result-row">
-                <span>(הכנסה נקייה - רשת ביטחון)</span>
-                <span>{{ r.taxableBase | number:'1.0-0' }} ₪</span>
-              </div>
-              @if (r.taxBreakdown.length === 0) {
-                <div class="result-row result-zero-tax">
-                  <span>אין מס — הכנסה נמוכה מרשת הביטחון</span>
-                  <span>0 ₪</span>
-                </div>
-              }
-              @for (tier of r.taxBreakdown; track $index) {
-                <div class="result-row">
-                  <span>{{ tier.tier }} ({{ tier.base | number:'1.0-0' }} ₪)</span>
-                  <span class="val-negative">({{ tier.tax | number:'1.0-0' }}) ₪</span>
-                </div>
-              }
-              <div class="result-row result-subtotal">
-                <span>סה"כ מס ערבות הדדית</span>
-                <span class="val-negative">({{ r.mutualSolidarityTax | number:'1.0-0' }}) ₪</span>
-              </div>
-            </div>
-
+            <div class="result-sub-label">מס ערבות הדדית:</div>
             <div class="result-rows">
               @if (r.safetyNetTopUp > 0) {
                 <div class="result-row result-topup">
                   <span>השלמה לרשת ביטחון</span>
                   <span class="val-positive">{{ r.safetyNetTopUp | number:'1.0-0' }} ₪</span>
+                </div>
+              }
+              @for (tier of r.taxBreakdown; track $index) {
+                <div class="result-row">
+                  <span>{{ tier.tier }}</span>
+                  <span class="val-negative">({{ tier.tax | number:'1.0-0' }}) ₪</span>
+                </div>
+              }
+              @if (r.mutualSolidarityTax > 0) {
+                <div class="result-row">
+                  <span>סה"כ מס ערבות הדדית</span>
+                  <span class="val-negative">({{ r.mutualSolidarityTax | number:'1.0-0' }}) ₪</span>
                 </div>
               }
               <div class="result-row result-subtotal">

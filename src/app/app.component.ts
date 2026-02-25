@@ -24,10 +24,11 @@ interface EducationInstitution {
   key: string;
   name: string;
   cost: number;
+  category: 'mandatory' | 'optional';
 }
 
 interface SimulationResult {
-  adultIncomes: { name: string; pension: number; workSalary: number }[];
+  adultIncomes: { name: string; pension: number; workSalary: number; status: 'employee' | 'retiree' | 'singleRetiree' }[];
   totalNetSalary: number;
   childAllowance: number;
   communityTaxTotal: number;
@@ -58,18 +59,18 @@ const PENSION_SINGLE_RETIREE = 11049;
 const PENSION_RETIREE        = 8140;
 
 const EDUCATION_INSTITUTIONS: EducationInstitution[] = [
-  { key: 'dekel',         name: 'דקל',           cost: 2248 },
-  { key: 'almogen',       name: 'אלמוגן',         cost: 1779 },
-  { key: 'brosh',         name: 'ברוש',           cost: 1850 },
-  { key: 'ganon',         name: 'גנון',           cost: 1700 },
-  { key: 'gan',           name: 'גן',             cost: 1300 },
-  { key: 'yesodi',        name: 'יסודי',          cost: 92   },
-  { key: 'chativaBS',     name: 'חטיבה ביס',      cost: 208  },
-  { key: 'tikhonBS',      name: 'תיכון ביס',      cost: 1667 },
-  { key: 'beytKolel',     name: 'בית כולל',       cost: 1200 },
-  { key: 'moadon',        name: 'מועדון',         cost: 800  },
-  { key: 'chativaAlumim', name: 'חטיבה עלומים',   cost: 400  },
-  { key: 'tikhonAlumim',  name: 'תיכון עלומים',   cost: 200  },
+  { key: 'dekel',         name: 'דקל',           cost: 2248, category: 'mandatory' },
+  { key: 'almogen',       name: 'אלמוגן',         cost: 1779, category: 'mandatory' },
+  { key: 'brosh',         name: 'ברוש',           cost: 1850, category: 'mandatory' },
+  { key: 'ganon',         name: 'גנון',           cost: 1700, category: 'mandatory' },
+  { key: 'gan',           name: 'גן',             cost: 1300, category: 'mandatory' },
+  { key: 'yesodi',        name: 'יסודי',          cost: 92,   category: 'mandatory' },
+  { key: 'chativaBS',     name: 'חטיבה ביס',      cost: 208,  category: 'mandatory' },
+  { key: 'tikhonBS',      name: 'תיכון ביס',      cost: 1667, category: 'mandatory' },
+  { key: 'beytKolel',     name: 'בית כולל',       cost: 1200, category: 'optional'  },
+  { key: 'moadon',        name: 'מועדון',         cost: 800,  category: 'optional'  },
+  { key: 'chativaAlumim', name: 'חטיבה עלומים',   cost: 400,  category: 'optional'  },
+  { key: 'tikhonAlumim',  name: 'תיכון עלומים',   cost: 200,  category: 'optional'  },
 ];
 
 @Component({
@@ -81,7 +82,9 @@ const EDUCATION_INSTITUTIONS: EducationInstitution[] = [
 })
 export class AppComponent {
 
-  readonly educationInstitutions = EDUCATION_INSTITUTIONS;
+  readonly educationInstitutions  = EDUCATION_INSTITUTIONS;
+  readonly mandatoryInstitutions  = EDUCATION_INSTITUTIONS.filter(i => i.category === 'mandatory');
+  readonly optionalInstitutions   = EDUCATION_INSTITUTIONS.filter(i => i.category === 'optional');
   openDropdowns = new Set<string>();
 
   simulator: { adults: SimulatorAdult[]; children: SimulatorChild[] } = {
@@ -279,6 +282,7 @@ export class AppComponent {
       name:       a.name || 'מבוגר',
       pension:    this.getRetireePension(a),
       workSalary: (a.status === 'employee' || a.alsoWorker) ? (a.netSalary || 0) : 0,
+      status:     a.status,
     }));
 
     const totalNetSalary = adultIncomes.reduce((sum, a) => sum + a.pension + a.workSalary, 0);

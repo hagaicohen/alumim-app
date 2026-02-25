@@ -423,6 +423,17 @@ $shadow-md:      0 4px 16px rgba(0,0,0,0.1);
   max-height: 260px;
   overflow-y: auto;
 }
+.inst-group-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: $primary;
+  background: $primary-bg;
+  padding: 0.35rem 0.9rem;
+  border-bottom: 1px solid $gray-200;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
 .inst-dropdown-item {
   display: flex;
   align-items: center;
