@@ -402,6 +402,10 @@ $shadow-md:      0 4px 16px rgba(0,0,0,0.1);
   grid-template-columns: 1fr 1fr;
   gap: 0.75rem;
   margin-bottom: 0.5rem;
+
+  @media (max-width: 540px) {
+    grid-template-columns: 1fr;
+  }
 }
 
 .inst-column { position: relative; }
