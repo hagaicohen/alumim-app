@@ -396,9 +396,18 @@ $shadow-md:      0 4px 16px rgba(0,0,0,0.1);
   margin-bottom: 0.5rem;
 }
 
+
+.inst-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.inst-column { position: relative; }
+
 .inst-dropdown-wrapper {
   position: relative;
-  margin-bottom: 0.75rem;
 }
 
 .inst-dropdown-btn {
@@ -411,35 +420,26 @@ $shadow-md:      0 4px 16px rgba(0,0,0,0.1);
   border: 1.5px solid $gray-200;
   border-radius: $radius-sm;
   font-family: inherit;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   color: $gray-800;
   cursor: pointer;
   text-align: right;
   transition: border-color 0.2s;
   box-sizing: border-box;
 
-  &:hover {
+  &:hover { border-color: $primary-light; }
+  &:focus, &:focus-visible {
+    outline: none;
     border-color: $primary-light;
   }
-
-  &:focus,
-  &:focus-visible {
-    outline: none;                 // remove black browser ring
-    border-color: $primary-light;  // match hover behavior
-  }
-
-  &:focus-visible {
-    outline: 2px solid $primary-light; // custom accessible focus ring
-    outline-offset: 2px;
-  }
 }
-
 
 .dropdown-arrow {
   font-size: 0.7rem;
   color: $gray-400;
   margin-right: 0.5rem;
 }
+
 .inst-dropdown-panel {
   position: absolute;
   top: calc(100% + 4px);
@@ -450,28 +450,18 @@ $shadow-md:      0 4px 16px rgba(0,0,0,0.1);
   border-radius: $radius-sm;
   box-shadow: $shadow-md;
   z-index: 100;
-  max-height: 260px;
+  max-height: 220px;
   overflow-y: auto;
-}
-.inst-group-label {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: $primary;
-  background: $primary-bg;
-  padding: 0.35rem 0.9rem;
-  border-bottom: 1px solid $gray-200;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
 }
 
 .inst-dropdown-item {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  padding: 0.55rem 0.9rem;
+  padding: 0.5rem 0.9rem;
   cursor: pointer;
   border-bottom: 1px solid $gray-200;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   color: $gray-800;
   transition: background 0.1s;
   user-select: none;
@@ -482,13 +472,13 @@ $shadow-md:      0 4px 16px rgba(0,0,0,0.1);
 
   input[type="checkbox"] {
     accent-color: $primary;
-    width: 15px;
-    height: 15px;
+    width: 14px;
+    height: 14px;
     cursor: pointer;
     flex-shrink: 0;
   }
   .inst-name { flex: 1; font-weight: 500; }
-  .inst-cost { color: $gray-400; font-size: 0.8rem; white-space: nowrap; }
+  .inst-cost { color: $gray-400; font-size: 0.78rem; white-space: nowrap; }
 }
 
 .inst-selected-list {

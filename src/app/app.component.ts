@@ -227,6 +227,16 @@ export class AppComponent {
 
   // ── Simulator methods ──────────────────────────────────
 
+  getMandatorySelectedCount(childIndex: number): number {
+    const keys = this.mandatoryInstitutions.map(i => i.key);
+    return (this.simulator.children[childIndex]?.selectedInstitutions ?? []).filter(k => keys.includes(k)).length;
+  }
+
+  getOptionalSelectedCount(childIndex: number): number {
+    const keys = this.optionalInstitutions.map(i => i.key);
+    return (this.simulator.children[childIndex]?.selectedInstitutions ?? []).filter(k => keys.includes(k)).length;
+  }
+
   resetSimulator(): void {
     this.simulator = {
       adults: [{ id: 'a1', name: '', birthDate: '', netSalary: 0, status: 'employee', alsoWorker: false }],
