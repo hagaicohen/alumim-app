@@ -228,6 +228,36 @@ $shadow-md:      0 4px 16px rgba(0,0,0,0.1);
 
 
 // ── Simulator ──────────────────────────────────────────
+.simulator-toolbar {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.btn-reset {
+  background: transparent;
+  border: 1.5px solid $gray-200;
+  color: $gray-600;
+  border-radius: $radius-sm;
+  padding: 0.35rem 0.9rem;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover {
+    border-color: #c53030;
+    color: #c53030;
+    background: #fff5f5;
+  }
+
+  &:focus, &:focus-visible {
+    outline: none;
+    border-color: #c53030;
+    color: #c53030;
+  }
+}
+
 .simulator-container {
   display: flex;
   flex-direction: column;

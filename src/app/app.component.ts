@@ -227,6 +227,14 @@ export class AppComponent {
 
   // ── Simulator methods ──────────────────────────────────
 
+  resetSimulator(): void {
+    this.simulator = {
+      adults: [{ id: 'a1', name: '', birthDate: '', netSalary: 0, status: 'employee', alsoWorker: false }],
+      children: [],
+    };
+    this.openDropdowns.clear();
+  }
+
   addSimulatorAdult(): void {
     if (this.simulator.adults.length >= 2) return;
     this.simulator.adults.push({
@@ -293,8 +301,7 @@ export class AppComponent {
     if (childCount >= 2) childAllowance += 219;
     if (childCount >= 3) childAllowance += 219;
     if (childCount >= 4) childAllowance += 219;
-    if (childCount >= 5) childAllowance += 173;
-    childAllowance = Math.min(childAllowance, 1003);
+    if (childCount >= 5) childAllowance += 173 * (childCount - 4);
 
     const communityTaxTotal = adults.length * 910;  // 850 קהילה + 60 עזרה הדדית
     const netIncome = totalNetSalary + childAllowance - communityTaxTotal;

@@ -478,12 +478,28 @@ describe('AppComponent', () => {
       expect(r.childAllowance).toBe(830);
     });
 
-    it('child allowance: 5+ children = capped at 1003', () => {
+    it('child allowance: 5 children = 1003', () => {
       app.simulator.adults[0].status = 'employee';
       app.simulator.adults[0].netSalary = 10000;
       for (let i = 0; i < 5; i++) app.addSimulatorChild();
       const r = app.simulatorResult!;
       expect(r.childAllowance).toBe(1003);
+    });
+
+    it('child allowance: 6 children = 1176 (no cap)', () => {
+      app.simulator.adults[0].status = 'employee';
+      app.simulator.adults[0].netSalary = 10000;
+      for (let i = 0; i < 6; i++) app.addSimulatorChild();
+      const r = app.simulatorResult!;
+      expect(r.childAllowance).toBe(1176);
+    });
+
+    it('child allowance: 7 children = 1349 (no cap)', () => {
+      app.simulator.adults[0].status = 'employee';
+      app.simulator.adults[0].netSalary = 10000;
+      for (let i = 0; i < 7; i++) app.addSimulatorChild();
+      const r = app.simulatorResult!;
+      expect(r.childAllowance).toBe(1349);
     });
   });
 

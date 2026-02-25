@@ -17,6 +17,10 @@
 
     <div class="simulator-container">
 
+      <div class="simulator-toolbar">
+        <button class="btn-reset" (click)="resetSimulator()">↺ איפוס</button>
+      </div>
+
       <!-- ── Adults ── -->
       <div class="sim-card">
         <div class="sim-card-header">
@@ -209,7 +213,7 @@
           <div class="result-step">
             <div class="result-step-title">
               <span class="step-badge">א</span>
-              הכנסה נקייה
+              הכנסה מכלל המקורות
             </div>
             <div class="result-rows">
               @for (ai of r.adultIncomes; track $index) {
@@ -247,7 +251,7 @@
                 <span class="val-negative">({{ simulator.adults.length * 60 | number:'1.0-0' }}) ₪</span>
               </div>
               <div class="result-row result-subtotal">
-                <span>הכנסה נקייה</span>
+                <span>הכנסה לפני מס פרוגרסיבי</span>
                 <span>{{ r.netIncome | number:'1.0-0' }} ₪</span>
               </div>
             </div>
@@ -338,7 +342,7 @@
                   <span>{{ r.familyPaymentCap | number:'1.0-0' }} ₪</span>
                 </div>
                 <div class="result-row">
-                  <span>עלות חינוך בפועל</span>
+                  <span>עלות חינוך בפועל (לפני סיבסוד)</span>
                   <span class="val-negative">({{ r.actualEducationCost | number:'1.0-0' }}) ₪</span>
                 </div>
                 @if (r.kibbutzSubsidy > 0) {
