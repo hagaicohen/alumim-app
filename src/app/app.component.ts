@@ -31,6 +31,7 @@ interface SimulationResult {
   adultIncomes: { name: string; pension: number; workSalary: number; status: 'employee' | 'retiree' | 'singleRetiree' }[];
   totalNetSalary: number;
   childAllowance: number;
+  btlAllowance: number;
   communityTaxTotal: number;
   netIncome: number;
   adultSafetyNets: { name: string; amount: number; reason: string }[];
@@ -55,22 +56,22 @@ interface SimulationResult {
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
-const PENSION_SINGLE_RETIREE = 11049;
+const PENSION_SINGLE_RETIREE = 11396;
 const PENSION_RETIREE        = 8140;
 
 const EDUCATION_INSTITUTIONS: EducationInstitution[] = [
-  { key: 'dekel',         name: 'דקל',           cost: 2248, category: 'mandatory' },
-  { key: 'almogen',       name: 'אלמוגן',         cost: 1779, category: 'mandatory' },
-  { key: 'brosh',         name: 'ברוש',           cost: 1850, category: 'mandatory' },
-  { key: 'ganon',         name: 'גנון',           cost: 1700, category: 'mandatory' },
-  { key: 'gan',           name: 'גן',             cost: 1300, category: 'mandatory' },
-  { key: 'yesodi',        name: 'יסודי',          cost: 92,   category: 'mandatory' },
-  { key: 'chativaBS',     name: 'חטיבה ביס',      cost: 208,  category: 'mandatory' },
-  { key: 'tikhonBS',      name: 'תיכון ביס',      cost: 1667, category: 'mandatory' },
-  { key: 'beytKolel',     name: 'בית כולל',       cost: 1200, category: 'optional'  },
-  { key: 'moadon',        name: 'מועדון',         cost: 800,  category: 'optional'  },
-  { key: 'chativaAlumim', name: 'חטיבה עלומים',   cost: 400,  category: 'optional'  },
-  { key: 'tikhonAlumim',  name: 'תיכון עלומים',   cost: 200,  category: 'optional'  },
+  { key: 'dekel',         name: 'פעוטון דקל',        cost: 2248, category: 'mandatory' },
+  { key: 'almogen',       name: 'פעוטון אלמוגן',      cost: 1779, category: 'mandatory' },
+  { key: 'brosh',         name: 'פעוטון ברוש',        cost: 1850, category: 'mandatory' },
+  { key: 'ganon',         name: 'גנון צאלון',         cost: 1700, category: 'mandatory' },
+  { key: 'gan',           name: 'גן ארזים',           cost: 1300, category: 'mandatory' },
+  { key: 'yesodi',        name: 'בי"ס יסודי א-ו',    cost: 92,   category: 'mandatory' },
+  { key: 'chativaBS',     name: 'בי"ס חטיבה',        cost: 208,  category: 'mandatory' },
+  { key: 'tikhonBS',      name: 'בי"ס תיכון',        cost: 1667, category: 'mandatory' },
+  { key: 'beytKolel',     name: 'בית כולל א-ג',      cost: 1200, category: 'optional'  },
+  { key: 'moadon',        name: 'מועדון אורן ד-ו',   cost: 800,  category: 'optional'  },
+  { key: 'chativaAlumim', name: 'מועדון חטיבה',       cost: 400,  category: 'optional'  },
+  { key: 'tikhonAlumim',  name: 'מועדון תיכון',       cost: 200,  category: 'optional'  },
 ];
 
 @Component({
@@ -86,6 +87,51 @@ export class AppComponent {
   readonly mandatoryInstitutions  = EDUCATION_INSTITUTIONS.filter(i => i.category === 'mandatory');
   readonly optionalInstitutions   = EDUCATION_INSTITUTIONS.filter(i => i.category === 'optional');
   openDropdowns = new Set<string>();
+
+  btlRates = {
+    single:       1838,
+    single80:     1941,
+    couple:       2762,
+    couple80:     2865,
+    singleChild1: 2419,
+    coupleChild1: 3343,
+    singleChild2: 3000,
+    coupleChild2: 3924,
+  };
+
+  get btlAllowance(): number {
+    const adultCount = this.simulator.adults.length;
+    const childCount = this.simulator.children.length;
+    const isCouple   = adultCount >= 2;
+    const is80       = this.simulator.adults.some(a => a.birthDate && this.calcAge(a.birthDate) >= 80);
+    if (!isCouple) {
+      if (childCount === 0) return is80 ? this.btlRates.single80 : this.btlRates.single;
+      if (childCount === 1) return this.btlRates.singleChild1;
+      return this.btlRates.singleChild2;
+    } else {
+      if (childCount === 0) return is80 ? this.btlRates.couple80 : this.btlRates.couple;
+      if (childCount === 1) return this.btlRates.coupleChild1;
+      return this.btlRates.coupleChild2;
+    }
+  }
+
+  get btlRateLabel(): string {
+    const adultCount = this.simulator.adults.length;
+    const childCount = this.simulator.children.length;
+    const isCouple   = adultCount >= 2;
+    const is80       = this.simulator.adults.some(a => a.birthDate && this.calcAge(a.birthDate) >= 80);
+    if (!isCouple) {
+      if (childCount === 0) return is80 ? 'יחיד/ה גיל 80+' : 'יחיד/ה';
+      if (childCount === 1) return 'יחיד/ה + ילד';
+      return 'יחיד/ה + 2 ילדים ויותר';
+    } else {
+      if (childCount === 0) return is80 ? 'זוג (גיל 80+)' : 'זוג';
+      if (childCount === 1) return 'זוג + ילד';
+      return 'זוג + 2 ילדים ויותר';
+    }
+  }
+
+  btlOpen = false;
 
   simulator: { adults: SimulatorAdult[]; children: SimulatorChild[] } = {
     adults: [{ id: 'a1', name: '', birthDate: '', netSalary: 0, status: 'employee', alsoWorker: false }],
@@ -281,10 +327,12 @@ export class AppComponent {
   toggleInstitution(childIndex: number, key: string): void {
     const child = this.simulator.children[childIndex];
     if (!child) return;
-    const idx = child.selectedInstitutions.indexOf(key);
-    if (idx >= 0) {
-      child.selectedInstitutions.splice(idx, 1);
-    } else {
+    const inst = EDUCATION_INSTITUTIONS.find(i => i.key === key);
+    if (!inst) return;
+    const wasSelected = child.selectedInstitutions.includes(key);
+    const categoryKeys = EDUCATION_INSTITUTIONS.filter(i => i.category === inst.category).map(i => i.key);
+    child.selectedInstitutions = child.selectedInstitutions.filter(k => !categoryKeys.includes(k));
+    if (!wasSelected) {
       child.selectedInstitutions.push(key);
     }
   }
@@ -313,8 +361,9 @@ export class AppComponent {
     if (childCount >= 4) childAllowance += 219;
     if (childCount >= 5) childAllowance += 173 * (childCount - 4);
 
+    const btlAllowance = this.btlAllowance;
     const communityTaxTotal = adults.length * 910;  // 850 קהילה + 60 עזרה הדדית
-    const netIncome = totalNetSalary + childAllowance - communityTaxTotal;
+    const netIncome = totalNetSalary + childAllowance + btlAllowance - communityTaxTotal;
 
     // ── Step B: Safety Net ────────────────────────────────
     const adultSafetyNets: { name: string; amount: number; reason: string }[] = [];
@@ -322,9 +371,9 @@ export class AppComponent {
       let amount: number;
       let reason: string;
       if (adult.status === 'singleRetiree') {
-        amount = 11049; reason = 'גמלאי/ת יחיד/ה';
+        amount = 5427; reason = 'גמלאי/ת יחיד/ה';
       } else if (adult.status === 'retiree') {
-        amount = 8140;  reason = 'גמלאי/ת';
+        amount = 5427; reason = 'גמלאי/ת';
       } else {
         amount = 6248;  reason = 'חבר/ת עובד/ת';
       }
@@ -404,7 +453,7 @@ export class AppComponent {
     const finalDisposableIncome = disposableIncome - actualEducationCost;
 
     return {
-      adultIncomes, totalNetSalary, childAllowance, communityTaxTotal, netIncome,
+      adultIncomes, totalNetSalary, childAllowance, btlAllowance, communityTaxTotal, netIncome,
       adultSafetyNets, childSafetyNets, safetyNetTotal, safetyNetTopUp,
       taxableBase, taxBreakdown, mutualSolidarityTax, disposableIncome,
       childEducationDetails, grossEducationCost,

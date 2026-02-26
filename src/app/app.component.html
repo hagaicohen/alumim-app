@@ -21,6 +21,53 @@
         <button class="btn-reset" (click)="resetSimulator()">↺ איפוס</button>
       </div>
 
+      <!-- ── BTL Rates ── -->
+      <div class="sim-card btl-card">
+        <div class="sim-card-header btl-header" (click)="btlOpen = !btlOpen">
+          <h3 class="sim-card-title">קצבת ביטוח לאומי (זקנה)</h3>
+          <div class="btl-header-right">
+            <span class="btl-current-label">הרכב נוכחי: {{ btlRateLabel }} — <strong>{{ btlAllowance | number:'1.0-0' }} ₪</strong></span>
+            <span class="btl-toggle-arrow">{{ btlOpen ? '▲' : '▼' }}</span>
+          </div>
+        </div>
+        @if (btlOpen) {
+          <div class="btl-rates-grid">
+            <div class="btl-rate-row">
+              <label>יחיד/ה</label>
+              <input type="number" [(ngModel)]="btlRates.single" min="0" />
+            </div>
+            <div class="btl-rate-row">
+              <label>יחיד/ה גיל 80+</label>
+              <input type="number" [(ngModel)]="btlRates.single80" min="0" />
+            </div>
+            <div class="btl-rate-row">
+              <label>זוג</label>
+              <input type="number" [(ngModel)]="btlRates.couple" min="0" />
+            </div>
+            <div class="btl-rate-row">
+              <label>זוג (גיל 80+)</label>
+              <input type="number" [(ngModel)]="btlRates.couple80" min="0" />
+            </div>
+            <div class="btl-rate-row">
+              <label>יחיד/ה + ילד</label>
+              <input type="number" [(ngModel)]="btlRates.singleChild1" min="0" />
+            </div>
+            <div class="btl-rate-row">
+              <label>זוג + ילד</label>
+              <input type="number" [(ngModel)]="btlRates.coupleChild1" min="0" />
+            </div>
+            <div class="btl-rate-row">
+              <label>יחיד/ה + 2 ילדים ויותר</label>
+              <input type="number" [(ngModel)]="btlRates.singleChild2" min="0" />
+            </div>
+            <div class="btl-rate-row">
+              <label>זוג + 2 ילדים ויותר</label>
+              <input type="number" [(ngModel)]="btlRates.coupleChild2" min="0" />
+            </div>
+          </div>
+        }
+      </div>
+
       <!-- ── Adults ── -->
       <div class="sim-card">
         <div class="sim-card-header">
@@ -139,7 +186,7 @@
                       <div class="inst-dropdown-panel">
                         @for (inst of mandatoryInstitutions; track inst.key) {
                           <label class="inst-dropdown-item" [class.selected]="isInstitutionSelected(i, inst.key)">
-                            <input type="checkbox" [checked]="isInstitutionSelected(i, inst.key)" (change)="toggleInstitution(i, inst.key)" />
+                            <input type="radio" [name]="child.id + '-mandatory'" [checked]="isInstitutionSelected(i, inst.key)" (click)="toggleInstitution(i, inst.key)" />
                             <span class="inst-name">{{ inst.name }}</span>
                             <span class="inst-cost">{{ inst.cost | number:'1.0-0' }} ₪</span>
                           </label>
@@ -153,14 +200,14 @@
                 <div class="inst-column">
                   <div class="inst-dropdown-wrapper">
                     <button class="inst-dropdown-btn" (click)="toggleDropdown(child.id + '-optional', $event)">
-                      <span>חינוך רשות{{ getOptionalSelectedCount(i) > 0 ? ' (' + getOptionalSelectedCount(i) + ')' : '' }}</span>
+                      <span>חינוך חברתי{{ getOptionalSelectedCount(i) > 0 ? ' (' + getOptionalSelectedCount(i) + ')' : '' }}</span>
                       <span class="dropdown-arrow">{{ isDropdownOpen(child.id + '-optional') ? '▲' : '▼' }}</span>
                     </button>
                     @if (isDropdownOpen(child.id + '-optional')) {
                       <div class="inst-dropdown-panel">
                         @for (inst of optionalInstitutions; track inst.key) {
                           <label class="inst-dropdown-item" [class.selected]="isInstitutionSelected(i, inst.key)">
-                            <input type="checkbox" [checked]="isInstitutionSelected(i, inst.key)" (change)="toggleInstitution(i, inst.key)" />
+                            <input type="radio" [name]="child.id + '-optional'" [checked]="isInstitutionSelected(i, inst.key)" (click)="toggleInstitution(i, inst.key)" />
                             <span class="inst-name">{{ inst.name }}</span>
                             <span class="inst-cost">{{ inst.cost | number:'1.0-0' }} ₪</span>
                           </label>
@@ -183,6 +230,11 @@
         @if (totalEducationCost > 0) {
           <div class="inst-grand-total">
             סה"כ חינוך לכל הילדים: <strong>{{ totalEducationCost | number:'1.0-0' }} ₪</strong>
+          </div>
+        }
+        @if (simulator.children.length > 1) {
+          <div class="sim-card-footer">
+            <button class="btn-add" (click)="addSimulatorChild()">+ הוסף ילד/ה</button>
           </div>
         }
       </div>
@@ -239,11 +291,15 @@
                 </div>
               }
               <div class="result-row">
-                <span>קהילה ({{ simulator.adults.length }} × 850 ₪)</span>
+                <span>קצבת ביטוח לאומי — {{ btlRateLabel }}</span>
+                <span class="val-positive">{{ r.btlAllowance | number:'1.0-0' }} ₪</span>
+              </div>
+              <div class="result-row">
+                <span>מס קהילה ({{ simulator.adults.length }} × 850 ₪)</span>
                 <span class="val-negative">({{ simulator.adults.length * 850 | number:'1.0-0' }}) ₪</span>
               </div>
               <div class="result-row">
-                <span>עזרה הדדית ({{ simulator.adults.length }} × 60 ₪)</span>
+                <span>קרן לעזרה הדדית ({{ simulator.adults.length }} × 60 ₪)</span>
                 <span class="val-negative">({{ simulator.adults.length * 60 | number:'1.0-0' }}) ₪</span>
               </div>
               <div class="result-row result-subtotal">

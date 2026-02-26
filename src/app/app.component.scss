@@ -281,6 +281,12 @@ $shadow-md:      0 4px 16px rgba(0,0,0,0.1);
   font-weight: 700;
   color: $accent;
 }
+.sim-card-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.75rem;
+}
+
 .sim-empty-note {
   color: $gray-400;
   font-size: 0.9rem;
@@ -649,3 +655,60 @@ $shadow-md:      0 4px 16px rgba(0,0,0,0.1);
 }
 .result-final-label { font-size: 1rem; font-weight: 700; color: $accent; }
 .result-final-value { font-size: 1.6rem; font-weight: 800; color: $primary; }
+
+// ── BTL Card ────────────────────────────────────────────
+.btl-card { cursor: default; }
+
+.btl-header {
+  cursor: pointer;
+  user-select: none;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.btl-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+  color: $gray-600;
+}
+
+.btl-current-label strong { color: $primary; }
+
+.btl-toggle-arrow {
+  font-size: 0.75rem;
+  color: $gray-400;
+}
+
+.btl-rates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0.6rem 1.2rem;
+  padding: 0.75rem 0 0.25rem;
+}
+
+.btl-rate-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+
+  label {
+    flex: 1;
+    font-size: 0.82rem;
+    color: $gray-600;
+    white-space: nowrap;
+  }
+
+  input {
+    width: 90px;
+    padding: 0.3rem 0.5rem;
+    border: 1px solid $gray-200;
+    border-radius: $radius-sm;
+    font-size: 0.85rem;
+    text-align: left;
+    direction: ltr;
+    &:focus { outline: none; border-color: $primary-light; }
+  }
+}
+
