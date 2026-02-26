@@ -1,6 +1,7 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 
 // ── Simulator interfaces ──────────────────────────────────────────────────────
 
@@ -81,7 +82,8 @@ const EDUCATION_INSTITUTIONS: EducationInstitution[] = [
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
+  private http = inject(HttpClient);
 
   readonly educationInstitutions  = EDUCATION_INSTITUTIONS;
   readonly mandatoryInstitutions  = EDUCATION_INSTITUTIONS.filter(i => i.category === 'mandatory');
@@ -132,6 +134,15 @@ export class AppComponent {
   }
 
   btlOpen = false;
+  btlLoading = false;
+
+  ngOnInit(): void {
+    this.btlLoading = true;
+    this.http.get<typeof this.btlRates>('/.netlify/functions/btl-rates').subscribe({
+      next: (data) => { Object.assign(this.btlRates, data); this.btlLoading = false; },
+      error: ()     => { this.btlLoading = false; },
+    });
+  }
 
   simulator: { adults: SimulatorAdult[]; children: SimulatorChild[] } = {
     adults: [{ id: 'a1', name: '', birthDate: '', netSalary: 0, status: 'employee', alsoWorker: false }],

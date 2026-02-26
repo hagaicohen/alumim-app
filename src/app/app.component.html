@@ -26,7 +26,10 @@
         <div class="sim-card-header btl-header" (click)="btlOpen = !btlOpen">
           <h3 class="sim-card-title">קצבת ביטוח לאומי (זקנה)</h3>
           <div class="btl-header-right">
-            <span class="btl-current-label">הרכב נוכחי: {{ btlRateLabel }} — <strong>{{ btlAllowance | number:'1.0-0' }} ₪</strong></span>
+            <span class="btl-current-label">
+              @if (btlLoading) { <span class="btl-loading">טוען מביטוח לאומי...</span> }
+              @else { הרכב נוכחי: {{ btlRateLabel }} — <strong>{{ btlAllowance | number:'1.0-0' }} ₪</strong> }
+            </span>
             <span class="btl-toggle-arrow">{{ btlOpen ? '▲' : '▼' }}</span>
           </div>
         </div>

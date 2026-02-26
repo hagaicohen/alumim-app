@@ -676,6 +676,8 @@ $shadow-md:      0 4px 16px rgba(0,0,0,0.1);
 
 .btl-current-label strong { color: $primary; }
 
+.btl-loading { color: $gray-400; font-style: italic; }
+
 .btl-toggle-arrow {
   font-size: 0.75rem;
   color: $gray-400;
