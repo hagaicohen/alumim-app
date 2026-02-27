@@ -740,50 +740,62 @@ $shadow-md:      0 4px 16px rgba(0,0,0,0.1);
   margin: 0 0 1.25rem;
 }
 
-.comparison-scroll {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+// ── Grid layout ──────────────────────────────────────
+$cmp-cols: 2fr 1.4fr 1.4fr 36px;
+
+.comparison-grid {
+  border: 1px solid $gray-200;
+  border-radius: $radius-sm;
+  overflow: hidden;
 }
 
-.comparison-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.9rem;
-  min-width: 480px;
+.cmp-header-row,
+.cmp-row {
+  display: grid;
+  grid-template-columns: $cmp-cols;
+  gap: 0.5rem;
+  padding: 0.55rem 0.9rem;
+  align-items: center;
+  border-bottom: 1px solid $gray-200;
+  &:last-child { border-bottom: none; }
+}
 
-  thead tr {
-    background: linear-gradient(135deg, $accent 0%, $primary 100%);
-    color: $white;
-  }
+.cmp-header-row {
+  background: linear-gradient(135deg, $accent 0%, $primary 100%);
+  color: $white;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 0.65rem 0.9rem;
+}
 
-  th {
-    padding: 0.65rem 0.9rem;
-    font-weight: 700;
-    text-align: right;
-    white-space: nowrap;
-  }
+.cmp-value-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
 
-  td {
-    padding: 0.45rem 0.6rem;
-    border-bottom: 1px solid $gray-200;
-    vertical-align: middle;
-  }
+.cmp-col-action {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
-  tfoot td { border-top: 2px solid $gray-200; border-bottom: none; }
+.cmp-label-mobile {
+  display: none;
+}
 
-  .col-name   { width: 35%; }
-  .col-past   { width: 28%; }
-  .col-new    { width: 28%; }
-  .col-action { width: 9%;  text-align: center; }
+.cmp-readonly-val {
+  font-weight: 700;
+  color: $primary;
 }
 
 .cmp-income-row {
   background: #f0fdf4;
   font-weight: 700;
-  td { color: $accent; }
+  color: $accent;
 }
 
-.cmp-expense-row:nth-child(odd) { background: $gray-50; }
+.cmp-expense-row:nth-child(even) { background: $gray-50; }
 
 .cmp-totals-row {
   background: $gray-100;
@@ -795,12 +807,6 @@ $shadow-md:      0 4px 16px rgba(0,0,0,0.1);
   background: $primary-bg;
   font-weight: 800;
   font-size: 1rem;
-}
-
-.cmp-readonly {
-  font-weight: 700;
-  color: $primary;
-  padding-right: 0.9rem;
 }
 
 .cmp-input {
@@ -816,8 +822,7 @@ $shadow-md:      0 4px 16px rgba(0,0,0,0.1);
   text-align: right;
   direction: ltr;
   transition: border-color 0.2s;
-
-  &:focus { outline: none; border-color: $primary-light; background: $white; }
+  &:focus { outline: none; border-color: $primary-light; }
 }
 
 .cmp-name-input {
@@ -829,6 +834,49 @@ $shadow-md:      0 4px 16px rgba(0,0,0,0.1);
   margin-top: 1rem;
   display: flex;
   justify-content: flex-start;
+}
+
+// ── Mobile: card layout ──────────────────────────────
+@media (max-width: 540px) {
+  .cmp-header-row { display: none; }
+
+  .cmp-label-mobile {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: $gray-600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: 0.15rem;
+  }
+
+  // Expense rows: [name (spans 1-2)] [✕] on top, [past] [new] [] below
+  .cmp-expense-row {
+    grid-template-columns: 1fr 1fr 36px;
+    grid-template-rows: auto auto;
+    padding: 0.75rem 0.9rem;
+    gap: 0.5rem 0.5rem;
+
+    .cmp-col-name   { grid-column: 1 / 3; grid-row: 1; }
+    .cmp-col-action { grid-column: 3;     grid-row: 1; align-self: center; }
+    .cmp-col-past   { grid-column: 1;     grid-row: 2; }
+    .cmp-col-new    { grid-column: 2;     grid-row: 2; }
+  }
+
+  // Income / totals / balance: label full-width on top, values side-by-side below
+  .cmp-income-row,
+  .cmp-totals-row,
+  .cmp-balance-row {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    padding: 0.75rem 0.9rem;
+    gap: 0.5rem 0.5rem;
+
+    .cmp-col-name   { grid-column: 1 / 3; grid-row: 1; }
+    .cmp-col-action { display: none; }
+    .cmp-col-past   { grid-column: 1; grid-row: 2; }
+    .cmp-col-new    { grid-column: 2; grid-row: 2; }
+  }
 }
 
 .btl-rate-row {

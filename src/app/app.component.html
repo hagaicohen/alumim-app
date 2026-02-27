@@ -446,67 +446,82 @@
           @if (comparison.show) {
             <div class="comparison-panel">
               <h3 class="comparison-title">גליון השוואה תקציבי</h3>
-              <div class="comparison-scroll">
-                <table class="comparison-table">
-                  <thead>
-                    <tr>
-                      <th class="col-name">סעיף</th>
-                      <th class="col-past">תקציב אישי (עבר)</th>
-                      <th class="col-new">הכנסה פנויה (הפרטה)</th>
-                      <th class="col-action"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <!-- Income row -->
-                    <tr class="cmp-income-row">
-                      <td class="col-name">הכנסה חודשית</td>
-                      <td class="col-past">
-                        <input type="number" [(ngModel)]="comparison.personalBudget" min="0" placeholder="0" class="cmp-input" />
-                      </td>
-                      <td class="col-new cmp-readonly">{{ r.finalDisposableIncome | number:'1.0-0' }} ₪</td>
-                      <td class="col-action"></td>
-                    </tr>
-                    <!-- Expense rows -->
-                    @for (exp of comparison.expenses; track $index; let i = $index) {
-                      <tr class="cmp-expense-row">
-                        <td class="col-name">
-                          <input type="text" [(ngModel)]="exp.name" placeholder="הוצאה" class="cmp-input cmp-name-input" />
-                        </td>
-                        <td class="col-past">
-                          <input type="number" [(ngModel)]="exp.pastAmount" min="0" placeholder="0" class="cmp-input" />
-                        </td>
-                        <td class="col-new">
-                          <input type="number" [(ngModel)]="exp.newAmount" min="0" placeholder="0" class="cmp-input" />
-                        </td>
-                        <td class="col-action">
-                          <button class="btn-remove-x" (click)="removeComparisonExpense(i)" title="הסר שורה">✕</button>
-                        </td>
-                      </tr>
-                    }
-                  </tbody>
-                  <tfoot>
-                    <tr class="cmp-totals-row">
-                      <td class="col-name">סה"כ הוצאות</td>
-                      <td class="col-past">{{ comparisonPastTotal | number:'1.0-0' }} ₪</td>
-                      <td class="col-new">{{ comparisonNewTotal | number:'1.0-0' }} ₪</td>
-                      <td class="col-action"></td>
-                    </tr>
-                    <tr class="cmp-balance-row">
-                      <td class="col-name">יתרה</td>
-                      <td class="col-past"
-                          [class.val-positive]="comparison.personalBudget - comparisonPastTotal >= 0"
-                          [class.val-negative]="comparison.personalBudget - comparisonPastTotal < 0">
-                        {{ comparison.personalBudget - comparisonPastTotal | number:'1.0-0' }} ₪
-                      </td>
-                      <td class="col-new"
-                          [class.val-positive]="r.finalDisposableIncome - comparisonNewTotal >= 0"
-                          [class.val-negative]="r.finalDisposableIncome - comparisonNewTotal < 0">
-                        {{ r.finalDisposableIncome - comparisonNewTotal | number:'1.0-0' }} ₪
-                      </td>
-                      <td class="col-action"></td>
-                    </tr>
-                  </tfoot>
-                </table>
+              <div class="comparison-grid">
+
+                <!-- Header (desktop only) -->
+                <div class="cmp-header-row">
+                  <div class="cmp-col-name">סעיף</div>
+                  <div class="cmp-col-past">תקציב אישי (עבר)</div>
+                  <div class="cmp-col-new">הכנסה פנויה (הפרטה)</div>
+                  <div class="cmp-col-action"></div>
+                </div>
+
+                <!-- Income row -->
+                <div class="cmp-row cmp-income-row">
+                  <div class="cmp-col-name cmp-section-label">הכנסה חודשית</div>
+                  <div class="cmp-col-past cmp-value-cell">
+                    <span class="cmp-label-mobile">תקציב אישי (עבר)</span>
+                    <input type="number" [(ngModel)]="comparison.personalBudget" min="0" placeholder="0" class="cmp-input" />
+                  </div>
+                  <div class="cmp-col-new cmp-value-cell">
+                    <span class="cmp-label-mobile">הכנסה פנויה (הפרטה)</span>
+                    <span class="cmp-readonly-val">{{ r.finalDisposableIncome | number:'1.0-0' }} ₪</span>
+                  </div>
+                  <div class="cmp-col-action"></div>
+                </div>
+
+                <!-- Expense rows -->
+                @for (exp of comparison.expenses; track $index; let i = $index) {
+                  <div class="cmp-row cmp-expense-row">
+                    <div class="cmp-col-name">
+                      <input type="text" [(ngModel)]="exp.name" placeholder="הוצאה" class="cmp-input cmp-name-input" />
+                    </div>
+                    <div class="cmp-col-past cmp-value-cell">
+                      <span class="cmp-label-mobile">עבר</span>
+                      <input type="number" [(ngModel)]="exp.pastAmount" min="0" placeholder="0" class="cmp-input" />
+                    </div>
+                    <div class="cmp-col-new cmp-value-cell">
+                      <span class="cmp-label-mobile">הפרטה</span>
+                      <input type="number" [(ngModel)]="exp.newAmount" min="0" placeholder="0" class="cmp-input" />
+                    </div>
+                    <div class="cmp-col-action">
+                      <button class="btn-remove-x" (click)="removeComparisonExpense(i)" title="הסר שורה">✕</button>
+                    </div>
+                  </div>
+                }
+
+                <!-- Totals row -->
+                <div class="cmp-row cmp-totals-row">
+                  <div class="cmp-col-name cmp-section-label">סה"כ הוצאות</div>
+                  <div class="cmp-col-past cmp-value-cell">
+                    <span class="cmp-label-mobile">עבר</span>
+                    {{ comparisonPastTotal | number:'1.0-0' }} ₪
+                  </div>
+                  <div class="cmp-col-new cmp-value-cell">
+                    <span class="cmp-label-mobile">הפרטה</span>
+                    {{ comparisonNewTotal | number:'1.0-0' }} ₪
+                  </div>
+                  <div class="cmp-col-action"></div>
+                </div>
+
+                <!-- Balance row -->
+                <div class="cmp-row cmp-balance-row">
+                  <div class="cmp-col-name cmp-section-label">יתרה</div>
+                  <div class="cmp-col-past cmp-value-cell"
+                       [class.val-positive]="comparison.personalBudget - comparisonPastTotal >= 0"
+                       [class.val-negative]="comparison.personalBudget - comparisonPastTotal < 0">
+                    <span class="cmp-label-mobile">עבר</span>
+                    {{ comparison.personalBudget - comparisonPastTotal | number:'1.0-0' }} ₪
+                  </div>
+                  <div class="cmp-col-new cmp-value-cell"
+                       [class.val-positive]="r.finalDisposableIncome - comparisonNewTotal >= 0"
+                       [class.val-negative]="r.finalDisposableIncome - comparisonNewTotal < 0">
+                    <span class="cmp-label-mobile">הפרטה</span>
+                    {{ r.finalDisposableIncome - comparisonNewTotal | number:'1.0-0' }} ₪
+                  </div>
+                  <div class="cmp-col-action"></div>
+                </div>
+
               </div>
               <div class="comparison-add-row">
                 <button class="btn-add" (click)="addComparisonExpense()">+ הוסף שורה</button>
