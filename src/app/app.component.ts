@@ -21,6 +21,12 @@ interface SimulatorChild {
   selectedInstitutions: string[];
 }
 
+interface ComparisonExpense {
+  name: string;
+  pastAmount: number;
+  newAmount: number;
+}
+
 interface EducationInstitution {
   key: string;
   name: string;
@@ -101,9 +107,14 @@ export class AppComponent implements OnInit {
     coupleChild2: 3924,
   };
 
+  get hasRetiree(): boolean {
+    return this.simulator.adults.some(a => a.status === 'retiree' || a.status === 'singleRetiree');
+  }
+
   get btlAllowance(): number {
+    if (!this.hasRetiree) return 0;
     const adultCount = this.simulator.adults.length;
-    const childCount = this.simulator.children.length;
+    const childCount = this.simulator.children.filter(c => c.birthDate && this.calcAge(c.birthDate) < 18).length;
     const isCouple   = adultCount >= 2;
     const is80       = this.simulator.adults.some(a => a.birthDate && this.calcAge(a.birthDate) >= 80);
     if (!isCouple) {
@@ -118,8 +129,9 @@ export class AppComponent implements OnInit {
   }
 
   get btlRateLabel(): string {
+    if (!this.hasRetiree) return '';
     const adultCount = this.simulator.adults.length;
-    const childCount = this.simulator.children.length;
+    const childCount = this.simulator.children.filter(c => c.birthDate && this.calcAge(c.birthDate) < 18).length;
     const isCouple   = adultCount >= 2;
     const is80       = this.simulator.adults.some(a => a.birthDate && this.calcAge(a.birthDate) >= 80);
     if (!isCouple) {
@@ -135,6 +147,39 @@ export class AppComponent implements OnInit {
 
   btlOpen = false;
   btlLoading = false;
+  stepAOpen = false;
+  stepBOpen = false;
+  stepCOpen = false;
+
+  comparison = {
+    show: false,
+    personalBudget: 0,
+    expenses: [
+      { name: 'דיור',          pastAmount: 0, newAmount: 0 },
+      { name: 'מזון',          pastAmount: 0, newAmount: 0 },
+      { name: 'תחבורה / רכב', pastAmount: 0, newAmount: 0 },
+      { name: 'בריאות',        pastAmount: 0, newAmount: 0 },
+      { name: 'לבוש',          pastAmount: 0, newAmount: 0 },
+      { name: 'פנאי ותרבות',  pastAmount: 0, newAmount: 0 },
+      { name: 'הוצאות אחרות', pastAmount: 0, newAmount: 0 },
+    ] as ComparisonExpense[],
+  };
+
+  get comparisonPastTotal(): number {
+    return this.comparison.expenses.reduce((s, e) => s + (e.pastAmount || 0), 0);
+  }
+
+  get comparisonNewTotal(): number {
+    return this.comparison.expenses.reduce((s, e) => s + (e.newAmount || 0), 0);
+  }
+
+  addComparisonExpense(): void {
+    this.comparison.expenses.push({ name: '', pastAmount: 0, newAmount: 0 });
+  }
+
+  removeComparisonExpense(index: number): void {
+    this.comparison.expenses.splice(index, 1);
+  }
 
   ngOnInit(): void {
     this.btlLoading = true;
@@ -142,6 +187,41 @@ export class AppComponent implements OnInit {
       next: (data) => { Object.assign(this.btlRates, data); this.btlLoading = false; },
       error: ()     => { this.btlLoading = false; },
     });
+    this.loadFromUrl();
+  }
+
+  private loadFromUrl(): void {
+    const p = new URLSearchParams(window.location.search);
+    if (!p.toString()) return;
+
+    const adults: SimulatorAdult[] = [];
+    for (let n = 1; n <= 2; n++) {
+      const prefix = `a${n}_`;
+      if (!p.has(`${prefix}salary`) && !p.has(`${prefix}status`) && !p.has(`${prefix}name`)) continue;
+      adults.push({
+        id:         `a${n}`,
+        name:       p.get(`${prefix}name`)   ?? '',
+        birthDate:  p.get(`${prefix}birth`)  ?? '',
+        netSalary:  Number(p.get(`${prefix}salary`) ?? 0),
+        status:     (p.get(`${prefix}status`) as SimulatorAdult['status']) ?? 'employee',
+        alsoWorker: p.get(`${prefix}worker`) === '1',
+      });
+    }
+
+    const children: SimulatorChild[] = [];
+    for (let n = 1; n <= 10; n++) {
+      const prefix = `c${n}_`;
+      if (!p.has(`${prefix}birth`) && !p.has(`${prefix}name`)) break;
+      children.push({
+        id:                   `sc${n}`,
+        name:                 p.get(`${prefix}name`)  ?? '',
+        birthDate:            p.get(`${prefix}birth`) ?? '',
+        selectedInstitutions: p.get(`${prefix}inst`)?.split(',').filter(Boolean) ?? [],
+      });
+    }
+
+    if (adults.length > 0) this.simulator.adults = adults;
+    if (children.length > 0) this.simulator.children = children;
   }
 
   simulator: { adults: SimulatorAdult[]; children: SimulatorChild[] } = {
@@ -374,7 +454,8 @@ export class AppComponent implements OnInit {
 
     const btlAllowance = this.btlAllowance;
     const communityTaxTotal = adults.length * 910;  // 850 קהילה + 60 עזרה הדדית
-    const netIncome = totalNetSalary + childAllowance + btlAllowance - communityTaxTotal;
+    const grossIncome = totalNetSalary + childAllowance + btlAllowance;
+    const netIncome   = grossIncome - communityTaxTotal;
 
     // ── Step B: Safety Net ────────────────────────────────
     const adultSafetyNets: { name: string; amount: number; reason: string }[] = [];
@@ -406,8 +487,8 @@ export class AppComponent implements OnInit {
       adultSafetyNets.reduce((s, a) => s + a.amount, 0) +
       childSafetyNets.reduce((s, c) => s + c.amount, 0);
 
-    // Safety net top-up: if net income < safety net, add the gap
-    const safetyNetTopUp = Math.max(0, safetyNetTotal - netIncome);
+    // Safety net top-up: compared against gross income (before community deductions)
+    const safetyNetTopUp = Math.max(0, safetyNetTotal - grossIncome);
 
     // ── Progressive tax ────────────────────────────────────
     const taxableBase = Math.max(0, netIncome - safetyNetTotal);

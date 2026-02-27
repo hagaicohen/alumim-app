@@ -22,6 +22,7 @@
       </div>
 
       <!-- ── BTL Rates ── -->
+      @if (hasRetiree) {
       <div class="sim-card btl-card">
         <div class="sim-card-header btl-header" (click)="btlOpen = !btlOpen">
           <h3 class="sim-card-title">קצבת ביטוח לאומי (זקנה)</h3>
@@ -70,6 +71,7 @@
           </div>
         }
       </div>
+      }
 
       <!-- ── Adults ── -->
       <div class="sim-card">
@@ -262,145 +264,170 @@
 
           <!-- Step A: Net Income -->
           <div class="result-step">
-            <div class="result-step-title">
-              <span class="step-badge">א</span>
-              הכנסה מכלל המקורות
+            <div class="result-step-title step-toggle" (click)="stepAOpen = !stepAOpen">
+              <div class="step-title-main">
+                <span class="step-badge">א</span>
+                הכנסה מכלל המקורות
+              </div>
+              <div class="step-title-right">
+                @if (!stepAOpen) { <span class="step-summary">{{ r.netIncome | number:'1.0-0' }} ₪</span> }
+                <span class="step-arrow">{{ stepAOpen ? '▲' : '▼' }}</span>
+              </div>
             </div>
-            <div class="result-rows">
-              @for (ai of r.adultIncomes; track $index) {
-                @if (ai.pension > 0) {
+            @if (stepAOpen) {
+              <div class="result-rows">
+                @for (ai of r.adultIncomes; track $index) {
+                  @if (ai.pension > 0) {
+                    <div class="result-row">
+                      <span>{{ ai.status === 'singleRetiree' ? 'קצבת גמלאי/ת יחיד/ה' : 'קצבה' }}{{ r.adultIncomes.length > 1 ? ' — ' + ai.name : '' }}</span>
+                      <span class="val-positive">{{ ai.pension | number:'1.0-0' }} ₪</span>
+                    </div>
+                  }
+                  @if (ai.workSalary > 0) {
+                    <div class="result-row">
+                      <span>{{ ai.pension > 0 ? 'שכר עבודה' : 'שכר נטו' }}{{ r.adultIncomes.length > 1 ? ' — ' + ai.name : '' }}</span>
+                      <span class="val-positive">{{ ai.workSalary | number:'1.0-0' }} ₪</span>
+                    </div>
+                  }
+                  @if (ai.pension === 0 && ai.workSalary === 0) {
+                    <div class="result-row">
+                      <span>שכר נטו{{ r.adultIncomes.length > 1 ? ' — ' + ai.name : '' }}</span>
+                      <span class="val-positive">0 ₪</span>
+                    </div>
+                  }
+                }
+                @if (r.childAllowance > 0) {
                   <div class="result-row">
-                    <span>{{ ai.status === 'singleRetiree' ? 'קצבת גמלאי/ת יחיד/ה' : 'קצבה' }}{{ r.adultIncomes.length > 1 ? ' — ' + ai.name : '' }}</span>
-                    <span class="val-positive">{{ ai.pension | number:'1.0-0' }} ₪</span>
+                    <span>קצבת ילדים ({{ simulator.children.length }} ילדים)</span>
+                    <span class="val-positive">{{ r.childAllowance | number:'1.0-0' }} ₪</span>
                   </div>
                 }
-                @if (ai.workSalary > 0) {
+                @if (r.btlAllowance > 0) {
                   <div class="result-row">
-                    <span>{{ ai.pension > 0 ? 'שכר עבודה' : 'שכר נטו' }}{{ r.adultIncomes.length > 1 ? ' — ' + ai.name : '' }}</span>
-                    <span class="val-positive">{{ ai.workSalary | number:'1.0-0' }} ₪</span>
+                    <span>קצבת ביטוח לאומי — {{ btlRateLabel }}</span>
+                    <span class="val-positive">{{ r.btlAllowance | number:'1.0-0' }} ₪</span>
                   </div>
                 }
-                @if (ai.pension === 0 && ai.workSalary === 0) {
-                  <div class="result-row">
-                    <span>שכר נטו{{ r.adultIncomes.length > 1 ? ' — ' + ai.name : '' }}</span>
-                    <span class="val-positive">0 ₪</span>
-                  </div>
-                }
-              }
-              @if (r.childAllowance > 0) {
                 <div class="result-row">
-                  <span>קצבת ילדים ({{ simulator.children.length }} ילדים)</span>
-                  <span class="val-positive">{{ r.childAllowance | number:'1.0-0' }} ₪</span>
+                  <span>מס קהילה ({{ simulator.adults.length }} × 850 ₪)</span>
+                  <span class="val-negative">({{ simulator.adults.length * 850 | number:'1.0-0' }}) ₪</span>
                 </div>
-              }
-              <div class="result-row">
-                <span>קצבת ביטוח לאומי — {{ btlRateLabel }}</span>
-                <span class="val-positive">{{ r.btlAllowance | number:'1.0-0' }} ₪</span>
+                <div class="result-row">
+                  <span>קרן לעזרה הדדית ({{ simulator.adults.length }} × 60 ₪)</span>
+                  <span class="val-negative">({{ simulator.adults.length * 60 | number:'1.0-0' }}) ₪</span>
+                </div>
+                <div class="result-row result-subtotal">
+                  <span>הכנסה לפני מס פרוגרסיבי</span>
+                  <span>{{ r.netIncome | number:'1.0-0' }} ₪</span>
+                </div>
               </div>
-              <div class="result-row">
-                <span>מס קהילה ({{ simulator.adults.length }} × 850 ₪)</span>
-                <span class="val-negative">({{ simulator.adults.length * 850 | number:'1.0-0' }}) ₪</span>
-              </div>
-              <div class="result-row">
-                <span>קרן לעזרה הדדית ({{ simulator.adults.length }} × 60 ₪)</span>
-                <span class="val-negative">({{ simulator.adults.length * 60 | number:'1.0-0' }}) ₪</span>
-              </div>
-              <div class="result-row result-subtotal">
-                <span>הכנסה לפני מס פרוגרסיבי</span>
-                <span>{{ r.netIncome | number:'1.0-0' }} ₪</span>
-              </div>
-            </div>
+            }
           </div>
 
           <!-- Step B: Safety Net + Tax -->
           <div class="result-step">
-            <div class="result-step-title">
-              <span class="step-badge">ב</span>
-              רשת ביטחון ומס ערבות הדדית
-            </div>
-
-            <div class="result-sub-label">רשת ביטחון:</div>
-            <div class="result-rows">
-              @for (a of r.adultSafetyNets; track $index) {
-                <div class="result-row">
-                  <span>{{ a.name }} — {{ a.reason }}</span>
-                  <span>{{ a.amount | number:'1.0-0' }} ₪</span>
-                </div>
-              }
-              @for (c of r.childSafetyNets; track $index) {
-                <div class="result-row">
-                  <span>{{ c.name }} — {{ c.type }}</span>
-                  <span>{{ c.amount | number:'1.0-0' }} ₪</span>
-                </div>
-              }
-              <div class="result-row result-subtotal">
-                <span>סה"כ רשת ביטחון</span>
-                <span>{{ r.safetyNetTotal | number:'1.0-0' }} ₪</span>
+            <div class="result-step-title step-toggle" (click)="stepBOpen = !stepBOpen">
+              <div class="step-title-main">
+                <span class="step-badge">ב</span>
+                רשת ביטחון ומס ערבות הדדית
+              </div>
+              <div class="step-title-right">
+                @if (!stepBOpen) { <span class="step-summary">{{ r.disposableIncome | number:'1.0-0' }} ₪</span> }
+                <span class="step-arrow">{{ stepBOpen ? '▲' : '▼' }}</span>
               </div>
             </div>
-
-            <div class="result-sub-label">מס ערבות הדדית:</div>
-            <div class="result-rows">
-              @if (r.safetyNetTopUp > 0) {
-                <div class="result-row result-topup">
-                  <span>השלמה לרשת ביטחון</span>
-                  <span class="val-positive">{{ r.safetyNetTopUp | number:'1.0-0' }} ₪</span>
+            @if (stepBOpen) {
+              <div class="result-sub-label">רשת ביטחון:</div>
+              <div class="result-rows">
+                @for (a of r.adultSafetyNets; track $index) {
+                  <div class="result-row">
+                    <span>{{ a.name }} — {{ a.reason }}</span>
+                    <span>{{ a.amount | number:'1.0-0' }} ₪</span>
+                  </div>
+                }
+                @for (c of r.childSafetyNets; track $index) {
+                  <div class="result-row">
+                    <span>{{ c.name }} — {{ c.type }}</span>
+                    <span>{{ c.amount | number:'1.0-0' }} ₪</span>
+                  </div>
+                }
+                <div class="result-row result-subtotal">
+                  <span>סה"כ רשת ביטחון</span>
+                  <span>{{ r.safetyNetTotal | number:'1.0-0' }} ₪</span>
                 </div>
-              }
-              @for (tier of r.taxBreakdown; track $index) {
-                <div class="result-row">
-                  <span>{{ tier.tier }}</span>
-                  <span class="val-negative">({{ tier.tax | number:'1.0-0' }}) ₪</span>
-                </div>
-              }
-              @if (r.mutualSolidarityTax > 0) {
-                <div class="result-row">
-                  <span>סה"כ מס ערבות הדדית</span>
-                  <span class="val-negative">({{ r.mutualSolidarityTax | number:'1.0-0' }}) ₪</span>
-                </div>
-              }
-              <div class="result-row result-subtotal">
-                <span>הכנסה פנויה (לפני חינוך)</span>
-                <span>{{ r.disposableIncome | number:'1.0-0' }} ₪</span>
               </div>
-            </div>
+
+              <div class="result-sub-label">מס ערבות הדדית:</div>
+              <div class="result-rows">
+                @if (r.safetyNetTopUp > 0) {
+                  <div class="result-row result-topup">
+                    <span>השלמה לרשת ביטחון</span>
+                    <span class="val-positive">{{ r.safetyNetTopUp | number:'1.0-0' }} ₪</span>
+                  </div>
+                }
+                @for (tier of r.taxBreakdown; track $index) {
+                  <div class="result-row">
+                    <span>{{ tier.tier }}</span>
+                    <span class="val-negative">({{ tier.tax | number:'1.0-0' }}) ₪</span>
+                  </div>
+                }
+                @if (r.mutualSolidarityTax > 0) {
+                  <div class="result-row">
+                    <span>סה"כ מס ערבות הדדית</span>
+                    <span class="val-negative">({{ r.mutualSolidarityTax | number:'1.0-0' }}) ₪</span>
+                  </div>
+                }
+                <div class="result-row result-subtotal">
+                  <span>הכנסה פנויה (לפני חינוך)</span>
+                  <span>{{ r.disposableIncome | number:'1.0-0' }} ₪</span>
+                </div>
+              </div>
+            }
           </div>
 
           <!-- Step C: Education -->
           @if (r.grossEducationCost > 0) {
             <div class="result-step">
-              <div class="result-step-title">
-                <span class="step-badge">ג</span>
-                הוצאות חינוך וסבסוד
+              <div class="result-step-title step-toggle" (click)="stepCOpen = !stepCOpen">
+                <div class="step-title-main">
+                  <span class="step-badge">ג</span>
+                  הוצאות חינוך וסבסוד
+                </div>
+                <div class="step-title-right">
+                  @if (!stepCOpen) { <span class="step-summary">סבסוד {{ r.kibbutzSubsidy | number:'1.0-0' }} ₪</span> }
+                  <span class="step-arrow">{{ stepCOpen ? '▲' : '▼' }}</span>
+                </div>
               </div>
-              <div class="result-rows">
-                @for (ce of r.childEducationDetails; track $index) {
-                  @if (ce.institutions.length > 0) {
-                    <div class="result-row result-child-edu-header">
-                      <span>{{ ce.name }}</span>
-                      <span>{{ ce.totalCost | number:'1.0-0' }} ₪</span>
-                    </div>
-                    @for (inst of ce.institutions; track $index) {
-                      <div class="result-row result-indent">
-                        <span>— {{ inst.name }}</span>
-                        <span>{{ inst.cost | number:'1.0-0' }} ₪</span>
+              @if (stepCOpen) {
+                <div class="result-rows">
+                  @for (ce of r.childEducationDetails; track $index) {
+                    @if (ce.institutions.length > 0) {
+                      <div class="result-row result-child-edu-header">
+                        <span>{{ ce.name }}</span>
+                        <span>{{ ce.totalCost | number:'1.0-0' }} ₪</span>
                       </div>
+                      @for (inst of ce.institutions; track $index) {
+                        <div class="result-row result-indent">
+                          <span>— {{ inst.name }}</span>
+                          <span>{{ inst.cost | number:'1.0-0' }} ₪</span>
+                        </div>
+                      }
                     }
                   }
-                }
-                <div class="result-row result-subtotal">
-                  <span>עלות חינוך בפועל (לפני סיבסוד)</span>
-                  <span>{{ r.grossEducationCost | number:'1.0-0' }} ₪</span>
+                  <div class="result-row result-subtotal">
+                    <span>עלות חינוך בפועל (לפני סיבסוד)</span>
+                    <span>{{ r.grossEducationCost | number:'1.0-0' }} ₪</span>
+                  </div>
+                  <div class="result-row">
+                    <span>תקרת תשלום (25% מהכנסה פנויה)</span>
+                    <span>{{ r.familyPaymentCap | number:'1.0-0' }} ₪</span>
+                  </div>
+                  <div class="result-row" [class.result-subsidy]="r.kibbutzSubsidy > 0">
+                    <span>סבסוד מהקיבוץ</span>
+                    <span [class.val-subsidy]="r.kibbutzSubsidy > 0">{{ r.kibbutzSubsidy > 0 ? (r.kibbutzSubsidy | number:'1.0-0') + ' ₪' : 'לא זכאי/ת' }}</span>
+                  </div>
                 </div>
-                <div class="result-row">
-                  <span>תקרת תשלום (25% מהכנסה פנויה)</span>
-                  <span>{{ r.familyPaymentCap | number:'1.0-0' }} ₪</span>
-                </div>
-                <div class="result-row" [class.result-subsidy]="r.kibbutzSubsidy > 0">
-                  <span>סבסוד מהקיבוץ</span>
-                  <span [class.val-subsidy]="r.kibbutzSubsidy > 0">{{ r.kibbutzSubsidy > 0 ? (r.kibbutzSubsidy | number:'1.0-0') + ' ₪' : 'לא זכאי/ת' }}</span>
-                </div>
-              </div>
+              }
             </div>
           }
 
@@ -409,6 +436,83 @@
             <span class="result-final-label">הכנסה פנויה סופית</span>
             <span class="result-final-value">{{ r.finalDisposableIncome | number:'1.0-0' }} ₪</span>
           </div>
+
+          <!-- Comparison Sheet Toggle -->
+          <button class="btn-comparison-toggle" (click)="comparison.show = !comparison.show">
+            {{ comparison.show ? '▲ סגור גליון השוואה' : '▼ גליון השוואה תקציבי' }}
+          </button>
+
+          <!-- Comparison Sheet -->
+          @if (comparison.show) {
+            <div class="comparison-panel">
+              <h3 class="comparison-title">גליון השוואה תקציבי</h3>
+              <div class="comparison-scroll">
+                <table class="comparison-table">
+                  <thead>
+                    <tr>
+                      <th class="col-name">סעיף</th>
+                      <th class="col-past">תקציב אישי (עבר)</th>
+                      <th class="col-new">הכנסה פנויה (הפרטה)</th>
+                      <th class="col-action"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- Income row -->
+                    <tr class="cmp-income-row">
+                      <td class="col-name">הכנסה חודשית</td>
+                      <td class="col-past">
+                        <input type="number" [(ngModel)]="comparison.personalBudget" min="0" placeholder="0" class="cmp-input" />
+                      </td>
+                      <td class="col-new cmp-readonly">{{ r.finalDisposableIncome | number:'1.0-0' }} ₪</td>
+                      <td class="col-action"></td>
+                    </tr>
+                    <!-- Expense rows -->
+                    @for (exp of comparison.expenses; track $index; let i = $index) {
+                      <tr class="cmp-expense-row">
+                        <td class="col-name">
+                          <input type="text" [(ngModel)]="exp.name" placeholder="הוצאה" class="cmp-input cmp-name-input" />
+                        </td>
+                        <td class="col-past">
+                          <input type="number" [(ngModel)]="exp.pastAmount" min="0" placeholder="0" class="cmp-input" />
+                        </td>
+                        <td class="col-new">
+                          <input type="number" [(ngModel)]="exp.newAmount" min="0" placeholder="0" class="cmp-input" />
+                        </td>
+                        <td class="col-action">
+                          <button class="btn-remove-x" (click)="removeComparisonExpense(i)" title="הסר שורה">✕</button>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                  <tfoot>
+                    <tr class="cmp-totals-row">
+                      <td class="col-name">סה"כ הוצאות</td>
+                      <td class="col-past">{{ comparisonPastTotal | number:'1.0-0' }} ₪</td>
+                      <td class="col-new">{{ comparisonNewTotal | number:'1.0-0' }} ₪</td>
+                      <td class="col-action"></td>
+                    </tr>
+                    <tr class="cmp-balance-row">
+                      <td class="col-name">יתרה</td>
+                      <td class="col-past"
+                          [class.val-positive]="comparison.personalBudget - comparisonPastTotal >= 0"
+                          [class.val-negative]="comparison.personalBudget - comparisonPastTotal < 0">
+                        {{ comparison.personalBudget - comparisonPastTotal | number:'1.0-0' }} ₪
+                      </td>
+                      <td class="col-new"
+                          [class.val-positive]="r.finalDisposableIncome - comparisonNewTotal >= 0"
+                          [class.val-negative]="r.finalDisposableIncome - comparisonNewTotal < 0">
+                        {{ r.finalDisposableIncome - comparisonNewTotal | number:'1.0-0' }} ₪
+                      </td>
+                      <td class="col-action"></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+              <div class="comparison-add-row">
+                <button class="btn-add" (click)="addComparisonExpense()">+ הוסף שורה</button>
+              </div>
+            </div>
+          }
 
         </div>
       }

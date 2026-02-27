@@ -577,7 +577,20 @@ $shadow-md:      0 4px 16px rgba(0,0,0,0.1);
   font-weight: 700;
   color: $accent;
   margin-bottom: 1rem;
+  &.step-toggle {
+    cursor: pointer;
+    user-select: none;
+    justify-content: space-between;
+    margin-bottom: 0;
+    &:hover { opacity: 0.85; }
+  }
 }
+.step-title-main { display: flex; align-items: center; gap: 0.6rem; }
+.step-title-right { display: flex; align-items: center; gap: 0.5rem; }
+.step-summary { font-size: 0.9rem; color: $primary; font-weight: 700; }
+.step-arrow { font-size: 0.7rem; color: $gray-400; }
+.result-step .result-sub-label:first-of-type,
+.result-step .result-rows:first-of-type { margin-top: 1rem; }
 .step-badge {
   width: 26px;
   height: 26px;
@@ -688,6 +701,134 @@ $shadow-md:      0 4px 16px rgba(0,0,0,0.1);
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 0.6rem 1.2rem;
   padding: 0.75rem 0 0.25rem;
+}
+
+// ── Budget Comparison ──────────────────────────────────
+.btn-comparison-toggle {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  background: $gray-50;
+  border: 1.5px solid $gray-200;
+  border-radius: $radius-sm;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: $accent;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
+
+  &:hover {
+    background: $primary-bg;
+    border-color: $primary-light;
+  }
+  &:focus, &:focus-visible { outline: none; border-color: $primary-light; }
+}
+
+.comparison-panel {
+  background: $white;
+  border-radius: $radius;
+  box-shadow: $shadow-md;
+  padding: 1.5rem;
+  border: 1.5px solid $primary-light;
+}
+
+.comparison-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: $accent;
+  margin: 0 0 1.25rem;
+}
+
+.comparison-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  min-width: 480px;
+
+  thead tr {
+    background: linear-gradient(135deg, $accent 0%, $primary 100%);
+    color: $white;
+  }
+
+  th {
+    padding: 0.65rem 0.9rem;
+    font-weight: 700;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 0.45rem 0.6rem;
+    border-bottom: 1px solid $gray-200;
+    vertical-align: middle;
+  }
+
+  tfoot td { border-top: 2px solid $gray-200; border-bottom: none; }
+
+  .col-name   { width: 35%; }
+  .col-past   { width: 28%; }
+  .col-new    { width: 28%; }
+  .col-action { width: 9%;  text-align: center; }
+}
+
+.cmp-income-row {
+  background: #f0fdf4;
+  font-weight: 700;
+  td { color: $accent; }
+}
+
+.cmp-expense-row:nth-child(odd) { background: $gray-50; }
+
+.cmp-totals-row {
+  background: $gray-100;
+  font-weight: 700;
+  color: $accent;
+}
+
+.cmp-balance-row {
+  background: $primary-bg;
+  font-weight: 800;
+  font-size: 1rem;
+}
+
+.cmp-readonly {
+  font-weight: 700;
+  color: $primary;
+  padding-right: 0.9rem;
+}
+
+.cmp-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.35rem 0.5rem;
+  border: 1.5px solid $gray-200;
+  border-radius: $radius-sm;
+  font-family: inherit;
+  font-size: 0.88rem;
+  color: $gray-800;
+  background: $white;
+  text-align: right;
+  direction: ltr;
+  transition: border-color 0.2s;
+
+  &:focus { outline: none; border-color: $primary-light; background: $white; }
+}
+
+.cmp-name-input {
+  direction: rtl;
+  text-align: right;
+}
+
+.comparison-add-row {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-start;
 }
 
 .btl-rate-row {
