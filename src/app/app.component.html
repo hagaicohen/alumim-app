@@ -331,18 +331,13 @@
           </div>
 
           <!-- Step B: Safety Net + Tax -->
-          <div class="result-step">
-            <div class="result-step-title step-toggle" (click)="stepBOpen = !stepBOpen">
+          <div class="result-step" [class.result-step-disabled]="r.safetyNetTopUp === 0 && r.mutualSolidarityTax === 0">
+            <div class="result-step-title">
               <div class="step-title-main">
                 <span class="step-badge">ב</span>
                 רשת ביטחון ומס ערבות הדדית
               </div>
-              <div class="step-title-right">
-                @if (!stepBOpen) { <span class="step-summary">{{ r.disposableIncome | number:'1.0-0' }} ₪</span> }
-                <span class="step-arrow">{{ stepBOpen ? '▲' : '▼' }}</span>
-              </div>
             </div>
-            @if (stepBOpen) {
               <!-- B-1: Safety Net -->
               <div class="result-sub-step">
                 <div class="result-sub-step-header" (click)="stepB1Open = !stepB1Open">
@@ -416,23 +411,23 @@
                   <span>{{ r.disposableIncome | number:'1.0-0' }} ₪</span>
                 </div>
               </div>
-            }
           </div>
 
           <!-- Step C: Education -->
-          @if (r.grossEducationCost > 0) {
-            <div class="result-step">
-              <div class="result-step-title step-toggle" (click)="stepCOpen = !stepCOpen">
-                <div class="step-title-main">
-                  <span class="step-badge">ג</span>
-                  הוצאות חינוך וסבסוד
-                </div>
+          <div class="result-step" [class.result-step-disabled]="r.grossEducationCost === 0">
+            <div class="result-step-title" [class.step-toggle]="r.grossEducationCost > 0" (click)="r.grossEducationCost > 0 && (stepCOpen = !stepCOpen)">
+              <div class="step-title-main">
+                <span class="step-badge">ג</span>
+                הוצאות חינוך וסבסוד
+              </div>
+              @if (r.grossEducationCost > 0) {
                 <div class="step-title-right">
                   @if (!stepCOpen) { <span class="step-summary">תשלום {{ r.actualEducationCost | number:'1.0-0' }} ₪</span> }
                   <span class="step-arrow">{{ stepCOpen ? '▲' : '▼' }}</span>
                 </div>
-              </div>
-              @if (stepCOpen) {
+              }
+            </div>
+            @if (stepCOpen && r.grossEducationCost > 0) {
                 <div class="result-rows">
                   @for (ce of r.childEducationDetails; track $index) {
                     @if (ce.institutions.length > 0) {
@@ -463,14 +458,13 @@
                 </div>
               }
             </div>
-          }
 
           <!-- Step D: Kibbutz-covered expenses -->
           <div class="result-step">
             <div class="result-step-title step-toggle" (click)="stepDOpen = !stepDOpen">
               <div class="step-title-main">
                 <span class="step-badge">ד</span>
-                הוצאות שהקיבוץ מכסה
+                הוצאות נוספות
               </div>
               <div class="step-title-right">
                 @if (!stepDOpen) { <span class="step-summary val-negative">({{ partDTotal | number:'1.0-0' }}) ₪</span> }
@@ -483,37 +477,70 @@
                   <span>ביטוח סיעוד ({{ simulator.adults.length }} × 50 ₪)</span>
                   <span class="val-negative">({{ partDNursingInsurance | number:'1.0-0' }}) ₪</span>
                 </div>
-                <div class="result-row">
-                  <span>ביטוח בריאות פניקס</span>
-                  <span class="val-negative">({{ partDPhoenixInsurance | number:'1.2-2' }}) ₪</span>
+                <div class="result-row part-d-phoenix-row">
+                  <div class="part-d-phoenix-header" (click)="phoenixOpen = !phoenixOpen">
+                    <span>ביטוח בריאות פניקס</span>
+                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                      <span class="val-negative">({{ partDPhoenixInsurance | number:'1.2-2' }}) ₪</span>
+                      <span class="step-arrow">{{ phoenixOpen ? '▲' : '▼' }}</span>
+                    </div>
+                  </div>
+                  @if (phoenixOpen) {
+                    <div class="part-d-phoenix-sub">
+                      @for (item of partDPhoenixBreakdown; track $index) {
+                        <div>
+                          <span>{{ item.name }}</span>
+                          <span class="val-negative">({{ item.amount | number:'1.2-2' }}) ₪</span>
+                        </div>
+                      }
+                    </div>
+                  }
                 </div>
                 <div class="result-row">
                   <span>תקשורת</span>
                   <div class="part-d-editable">
-                    <input type="number" [(ngModel)]="partD.communication" min="0" class="part-d-input" />
-                    <span class="part-d-currency">₪</span>
+                    <div class="part-d-input-group">
+                      <input type="number" [(ngModel)]="partD.communication" min="0" class="part-d-input" />
+                    </div>
+                    <span class="part-d-neg-val">({{ partD.communication || 0 | number:'1.0-0' }}) ₪</span>
                   </div>
                 </div>
                 <div class="result-row">
                   <span>מים + ביוב</span>
                   <div class="part-d-editable">
-                    <input type="number" [(ngModel)]="partD.water" min="0" class="part-d-input" />
-                    <span class="part-d-currency">₪</span>
+                    <div class="part-d-input-group">
+                      <input type="number" [(ngModel)]="partD.water" min="0" class="part-d-input" />
+                    </div>
+                    <span class="part-d-neg-val">({{ partD.water || 0 | number:'1.0-0' }}) ₪</span>
                   </div>
                 </div>
                 <div class="result-row">
                   <span>חשמל</span>
                   <div class="part-d-editable">
-                    <input type="number" [(ngModel)]="partD.electricity" min="0" class="part-d-input" />
-                    <span class="part-d-currency">₪</span>
+                    <div class="part-d-input-group">
+                      <input type="number" [(ngModel)]="partD.electricity" min="0" class="part-d-input" />
+                    </div>
+                    <span class="part-d-neg-val">({{ partD.electricity || 0 | number:'1.0-0' }}) ₪</span>
+                  </div>
+                </div>
+                <div class="result-row">
+                  <span>ארנונה</span>
+                  <div class="part-d-editable">
+                    <div class="part-d-input-group">
+                      <input type="number" [(ngModel)]="partD.arnona" min="0" class="part-d-input" />
+                    </div>
+                    <span class="part-d-neg-val">({{ partD.arnona || 0 | number:'1.0-0' }}) ₪</span>
                   </div>
                 </div>
                 @for (exp of partD.extraExpenses; track $index; let i = $index) {
                   <div class="result-row">
                     <input type="text" [(ngModel)]="exp.name" placeholder="שם הוצאה" class="part-d-name-input" />
                     <div class="part-d-editable">
-                      <input type="number" [(ngModel)]="exp.amount" min="0" class="part-d-input" />
-                      <button class="btn-remove-x" (click)="removePartDExpense(i)" title="הסר">✕</button>
+                      <div class="part-d-input-group">
+                        <input type="number" [(ngModel)]="exp.amount" min="0" class="part-d-input" />
+                        <button class="btn-remove-x" (click)="removePartDExpense(i)" title="הסר">✕</button>
+                      </div>
+                      <span class="part-d-neg-val">({{ exp.amount || 0 | number:'1.0-0' }}) ₪</span>
                     </div>
                   </div>
                 }
@@ -575,11 +602,22 @@
                     </div>
                     <div class="cmp-col-past cmp-value-cell">
                       <span class="cmp-label-mobile">עבר</span>
-                      <input type="number" [(ngModel)]="exp.pastAmount" min="0" placeholder="0" class="cmp-input" />
+                      @if (exp.name.includes('בריאות')) {
+                        <input type="number" value="0" disabled class="cmp-input cmp-input-blocked" />
+                      } @else {
+                        <input type="number" [(ngModel)]="exp.pastAmount" min="0" placeholder="0" class="cmp-input" />
+                      }
                     </div>
                     <div class="cmp-col-new cmp-value-cell">
                       <span class="cmp-label-mobile">הפרטה</span>
-                      <input type="number" [(ngModel)]="exp.newAmount" min="0" placeholder="0" class="cmp-input" />
+                      @if (exp.name.includes('בריאות')) {
+                        <input type="number"
+                               [value]="exp.newAmount"
+                               (input)="onHealthAmountInput($event, exp, r.disposableIncome)"
+                               min="0" placeholder="0" class="cmp-input" />
+                      } @else {
+                        <input type="number" [(ngModel)]="exp.newAmount" min="0" placeholder="0" class="cmp-input" />
+                      }
                     </div>
                     <div class="cmp-col-action">
                       <button class="btn-remove-x" (click)="removeComparisonExpense(i)" title="הסר שורה">✕</button>

@@ -568,6 +568,11 @@ $shadow-md:      0 4px 16px rgba(0,0,0,0.1);
   border-radius: $radius;
   box-shadow: $shadow-sm;
   padding: 1.25rem 1.5rem;
+
+  &.result-step-disabled {
+    opacity: 0.4;
+    pointer-events: none;
+  }
 }
 .result-step-title {
   display: flex;
@@ -830,6 +835,42 @@ $cmp-cols: 2fr 1.4fr 1.4fr 36px;
   text-align: right;
 }
 
+.cmp-neg-wrap {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 2px;
+  width: 100%;
+
+  .cmp-input { flex: 1; min-width: 0; }
+}
+
+.cmp-paren {
+  color: #dc2626;
+  font-weight: 600;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.cmp-expense-input {
+  color: #dc2626;
+}
+
+.cmp-health-cap {
+  display: block;
+  font-size: 0.72rem;
+  color: #b45309;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+.cmp-input-blocked {
+  background: $gray-100;
+  color: $gray-400;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .comparison-add-row {
   margin-top: 1rem;
   display: flex;
@@ -922,6 +963,14 @@ $cmp-cols: 2fr 1.4fr 1.4fr 36px;
 .part-d-editable {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  flex: 1;
+  padding-right: 1rem;
+}
+
+.part-d-input-group {
+  display: flex;
+  align-items: center;
   gap: 0.35rem;
 }
 
@@ -940,10 +989,65 @@ $cmp-cols: 2fr 1.4fr 1.4fr 36px;
   &:focus { outline: none; border-color: $primary-light; }
 }
 
+.part-d-neg-val {
+  color: #dc2626;
+  font-weight: 600;
+  font-size: 0.88rem;
+  white-space: nowrap;
+}
+
+.part-d-phoenix-row {
+  flex-direction: column;
+  align-items: stretch;
+  padding: 0;
+  gap: 0;
+}
+
+.part-d-phoenix-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.55rem 0.9rem;
+  cursor: pointer;
+  user-select: none;
+  &:hover { background: $gray-50; }
+}
+
+.part-d-phoenix-sub {
+  border-top: 1px solid $gray-200;
+  > div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.35rem 0.9rem 0.35rem 1.5rem;
+    font-size: 0.84rem;
+    color: $gray-600;
+    border-bottom: 1px solid $gray-200;
+    &:last-child { border-bottom: none; }
+  }
+}
+
 .part-d-currency {
   font-size: 0.88rem;
   color: $gray-600;
   font-weight: 600;
+}
+
+@media (max-width: 540px) {
+  .result-row:has(.part-d-editable) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.35rem;
+
+    > span:first-child { flex: none; }
+  }
+
+  .part-d-editable {
+    padding-right: 0;
+    justify-content: space-between;
+  }
+
+  .part-d-input { width: 120px; }
 }
 
 .part-d-name-input {

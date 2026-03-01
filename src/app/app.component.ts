@@ -1,86 +1,8 @@
 import { Component, HostListener, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
-
-// ── Simulator interfaces ──────────────────────────────────────────────────────
-
-interface SimulatorAdult {
-  id: string;
-  name: string;
-  birthDate: string;
-  netSalary: number;
-  status: 'employee' | 'retiree' | 'singleRetiree';
-  alsoWorker: boolean;
-}
-
-interface SimulatorChild {
-  id: string;
-  name: string;
-  birthDate: string;
-  selectedInstitutions: string[];
-}
-
-interface ComparisonExpense {
-  name: string;
-  pastAmount: number;
-  newAmount: number;
-}
-
-interface EducationInstitution {
-  key: string;
-  name: string;
-  cost: number;
-  category: 'mandatory' | 'optional';
-}
-
-interface SimulationResult {
-  adultIncomes: { name: string; pension: number; workSalary: number; status: 'employee' | 'retiree' | 'singleRetiree' }[];
-  totalNetSalary: number;
-  childAllowance: number;
-  btlAllowance: number;
-  communityTaxTotal: number;
-  netIncome: number;
-  adultSafetyNets: { name: string; amount: number; reason: string }[];
-  childSafetyNets: { name: string; type: string; amount: number }[];
-  safetyNetTotal: number;
-  safetyNetTopUp: number;
-  taxableBase: number;
-  taxBreakdown: { tier: string; base: number; tax: number }[];
-  mutualSolidarityTax: number;
-  disposableIncome: number;
-  childEducationDetails: {
-    name: string;
-    institutions: { name: string; cost: number }[];
-    totalCost: number;
-  }[];
-  grossEducationCost: number;
-  familyPaymentCap: number;
-  actualEducationCost: number;
-  kibbutzSubsidy: number;
-  partDTotal: number;
-  finalDisposableIncome: number;
-}
-
-// ── Constants ────────────────────────────────────────────────────────────────
-
-const PENSION_SINGLE_RETIREE = 11396;
-const PENSION_RETIREE        = 8140;
-
-const EDUCATION_INSTITUTIONS: EducationInstitution[] = [
-  { key: 'dekel',         name: 'פעוטון דקל',        cost: 2248, category: 'mandatory' },
-  { key: 'almogen',       name: 'פעוטון אלמוגן',      cost: 1779, category: 'mandatory' },
-  { key: 'brosh',         name: 'פעוטון ברוש',        cost: 1850, category: 'mandatory' },
-  { key: 'ganon',         name: 'גנון צאלון',         cost: 1700, category: 'mandatory' },
-  { key: 'gan',           name: 'גן ארזים',           cost: 1300, category: 'mandatory' },
-  { key: 'yesodi',        name: 'בי"ס יסודי א-ו',    cost: 92,   category: 'mandatory' },
-  { key: 'chativaBS',     name: 'בי"ס חטיבה',        cost: 208,  category: 'mandatory' },
-  { key: 'tikhonBS',      name: 'בי"ס תיכון',        cost: 1667, category: 'mandatory' },
-  { key: 'beytKolel',     name: 'בית כולל א-ג',      cost: 1200, category: 'optional'  },
-  { key: 'moadon',        name: 'מועדון אורן ד-ו',   cost: 800,  category: 'optional'  },
-  { key: 'chativaAlumim', name: 'מועדון חטיבה',       cost: 400,  category: 'optional'  },
-  { key: 'tikhonAlumim',  name: 'מועדון תיכון',       cost: 200,  category: 'optional'  },
-];
+import { SimulatorService } from './simulator.service';
+import type { SimulatorAdult, SimulatorChild, ComparisonExpense, PartDState } from './simulator.service';
 
 @Component({
   selector: 'app-root',
@@ -90,76 +12,29 @@ const EDUCATION_INSTITUTIONS: EducationInstitution[] = [
   styleUrl: './app.component.scss',
 })
 export class AppComponent implements OnInit {
-  private http = inject(HttpClient);
+  private svc = inject(SimulatorService);
 
-  readonly educationInstitutions  = EDUCATION_INSTITUTIONS;
-  readonly mandatoryInstitutions  = EDUCATION_INSTITUTIONS.filter(i => i.category === 'mandatory');
-  readonly optionalInstitutions   = EDUCATION_INSTITUTIONS.filter(i => i.category === 'optional');
-  openDropdowns = new Set<string>();
-
-  btlRates = {
-    single:       1838,
-    single80:     1941,
-    couple:       2762,
-    couple80:     2865,
-    singleChild1: 2419,
-    coupleChild1: 3343,
-    singleChild2: 3000,
-    coupleChild2: 3924,
-  };
-
-  get hasRetiree(): boolean {
-    return this.simulator.adults.some(a => a.status === 'retiree' || a.status === 'singleRetiree');
-  }
-
-  get btlAllowance(): number {
-    if (!this.hasRetiree) return 0;
-    const adultCount = this.simulator.adults.length;
-    const childCount = this.simulator.children.filter(c => c.birthDate && this.calcAge(c.birthDate) < 18).length;
-    const isCouple   = adultCount >= 2;
-    const is80       = this.simulator.adults.some(a => a.birthDate && this.calcAge(a.birthDate) >= 80);
-    if (!isCouple) {
-      if (childCount === 0) return is80 ? this.btlRates.single80 : this.btlRates.single;
-      if (childCount === 1) return this.btlRates.singleChild1;
-      return this.btlRates.singleChild2;
-    } else {
-      if (childCount === 0) return is80 ? this.btlRates.couple80 : this.btlRates.couple;
-      if (childCount === 1) return this.btlRates.coupleChild1;
-      return this.btlRates.coupleChild2;
-    }
-  }
-
-  get btlRateLabel(): string {
-    if (!this.hasRetiree) return '';
-    const adultCount = this.simulator.adults.length;
-    const childCount = this.simulator.children.filter(c => c.birthDate && this.calcAge(c.birthDate) < 18).length;
-    const isCouple   = adultCount >= 2;
-    const is80       = this.simulator.adults.some(a => a.birthDate && this.calcAge(a.birthDate) >= 80);
-    if (!isCouple) {
-      if (childCount === 0) return is80 ? 'יחיד/ה גיל 80+' : 'יחיד/ה';
-      if (childCount === 1) return 'יחיד/ה + ילד';
-      return 'יחיד/ה + 2 ילדים ויותר';
-    } else {
-      if (childCount === 0) return is80 ? 'זוג (גיל 80+)' : 'זוג';
-      if (childCount === 1) return 'זוג + ילד';
-      return 'זוג + 2 ילדים ויותר';
-    }
-  }
-
-  btlOpen = false;
-  btlLoading = false;
-  stepAOpen = false;
-  stepBOpen = false;
+  // ── UI state ───────────────────────────────────────────
+  btlOpen    = false;
+  stepAOpen  = false;
   stepB1Open = false;
   stepB2Open = false;
-  stepCOpen = false;
-  stepDOpen = false;
+  stepCOpen  = false;
+  stepDOpen  = false;
+  phoenixOpen = false;
+  openDropdowns = new Set<string>();
 
-  partD = {
+  simulator: { adults: SimulatorAdult[]; children: SimulatorChild[] } = {
+    adults: [{ id: 'a1', name: '', birthDate: '', netSalary: 0, status: 'employee', alsoWorker: false }],
+    children: [],
+  };
+
+  partD: PartDState = {
     communication: 100,
     water:         0,
     electricity:   0,
-    extraExpenses: [] as { name: string; amount: number }[],
+    arnona:        0,
+    extraExpenses: [],
   };
 
   comparison = {
@@ -174,69 +49,27 @@ export class AppComponent implements OnInit {
     ] as ComparisonExpense[],
   };
 
-  get comparisonPastTotal(): number {
-    return this.comparison.expenses.reduce((s, e) => s + (e.pastAmount || 0), 0);
-  }
+  // ── Service delegates (same public names — template unchanged) ────────────
+  get btlRates()              { return this.svc.btlRates; }
+  get btlLoading()            { return this.svc.btlLoading; }
+  get educationInstitutions() { return this.svc.educationInstitutions; }
+  get mandatoryInstitutions() { return this.svc.mandatoryInstitutions; }
+  get optionalInstitutions()  { return this.svc.optionalInstitutions; }
 
-  get comparisonNewTotal(): number {
-    return this.comparison.expenses.reduce((s, e) => s + (e.newAmount || 0), 0);
-  }
+  get btlAllowance()          { return this.svc.getBtlAllowance(this.simulator.adults, this.simulator.children); }
+  get btlRateLabel()          { return this.svc.getBtlRateLabel(this.simulator.adults, this.simulator.children); }
+  get partDNursingInsurance() { return this.svc.getPartDNursingInsurance(this.simulator.adults.length); }
+  get partDPhoenixInsurance() { return this.svc.getPartDPhoenixInsurance(this.simulator.adults, this.simulator.children); }
+  get partDTotal()              { return this.svc.getPartDTotal(this.simulator.adults, this.simulator.children, this.partD); }
+  get partDPhoenixBreakdown()   { return this.svc.getPartDPhoenixBreakdown(this.simulator.adults, this.simulator.children); }
+  get simulatorResult()       { return this.svc.calculate(this.simulator.adults, this.simulator.children, this.partD); }
 
-  addComparisonExpense(): void {
-    this.comparison.expenses.push({ name: '', pastAmount: 0, newAmount: 0 });
-  }
+  getRetireePension(adult: SimulatorAdult): number     { return this.svc.getRetireePension(adult); }
+  getChildEducationTotal(child: SimulatorChild): number { return this.svc.getChildEducationTotal(child); }
 
-  removeComparisonExpense(index: number): void {
-    this.comparison.expenses.splice(index, 1);
-  }
-
-  // ── Part D ─────────────────────────────────────────────
-
-  get partDNursingInsurance(): number {
-    return this.simulator.adults.length * 50;
-  }
-
-  get partDPhoenixInsurance(): number {
-    let total = 0;
-    for (const adult of this.simulator.adults) {
-      if (!adult.birthDate) continue;
-      const age = this.calcAge(adult.birthDate);
-      if (age >= 70)      total += 141.82;
-      else if (age >= 51) total += 80.63;
-      else                total += 63.27;
-    }
-    let kidCount = 0;
-    for (const child of this.simulator.children) {
-      if (kidCount >= 2) break;
-      if (!child.birthDate) continue;
-      if (this.calcAge(child.birthDate) < 21) { total += 22.98; kidCount++; }
-    }
-    return Math.round(total * 100) / 100;
-  }
-
-  get partDTotal(): number {
-    return this.partDNursingInsurance
-      + this.partDPhoenixInsurance
-      + (this.partD.communication || 0)
-      + (this.partD.water || 0)
-      + (this.partD.electricity || 0)
-      + this.partD.extraExpenses.reduce((s, e) => s + (e.amount || 0), 0);
-  }
-
-  addPartDExpense(): void {
-    this.partD.extraExpenses.push({ name: '', amount: 0 });
-  }
-
-  removePartDExpense(i: number): void {
-    this.partD.extraExpenses.splice(i, 1);
-  }
-
+  // ── Lifecycle ─────────────────────────────────────────
   ngOnInit(): void {
-    this.btlLoading = true;
-    this.http.get<typeof this.btlRates>('/.netlify/functions/btl-rates').subscribe({
-      next: (data) => { Object.assign(this.btlRates, data); this.btlLoading = false; },
-      error: ()     => { this.btlLoading = false; },
-    });
+    this.svc.loadBtlRates();
     this.loadFromUrl();
   }
 
@@ -274,23 +107,13 @@ export class AppComponent implements OnInit {
     if (children.length > 0) this.simulator.children = children;
   }
 
-  simulator: { adults: SimulatorAdult[]; children: SimulatorChild[] } = {
-    adults: [{ id: 'a1', name: '', birthDate: '', netSalary: 0, status: 'employee', alsoWorker: false }],
-    children: [],
-  };
-
-  // ── Retiree pension helpers ─────────────────────────────
-
-  getRetireePension(adult: SimulatorAdult): number {
-    if (adult.status === 'singleRetiree') return PENSION_SINGLE_RETIREE;
-    if (adult.status === 'retiree')       return PENSION_RETIREE;
-    return 0;
+  // ── Status helpers ─────────────────────────────────────
+  get hasRetiree(): boolean {
+    return this.simulator.adults.some(a => a.status === 'retiree' || a.status === 'singleRetiree');
   }
 
-  getAdultTotalIncome(adult: SimulatorAdult): number {
-    const pension    = this.getRetireePension(adult);
-    const workSalary = (adult.status === 'employee' || adult.alsoWorker) ? (adult.netSalary || 0) : 0;
-    return pension + workSalary;
+  get hasSingleRetiree(): boolean {
+    return this.simulator.adults.some(a => a.status === 'singleRetiree');
   }
 
   getPrimaryStatus(adult: SimulatorAdult): 'employee' | 'retiree' {
@@ -315,12 +138,7 @@ export class AppComponent implements OnInit {
     }
   }
 
-  get hasSingleRetiree(): boolean {
-    return this.simulator.adults.some(a => a.status === 'singleRetiree');
-  }
-
   // ── Validation ─────────────────────────────────────────
-
   get todayStr(): string {
     return new Date().toISOString().split('T')[0];
   }
@@ -340,22 +158,29 @@ export class AppComponent implements OnInit {
     return this.simulator.children.some(c => !!this.childAgeError(c));
   }
 
-  // ── Helpers ────────────────────────────────────────────
-
-  calcAge(birthDate: string): number {
-    if (!birthDate) return 0;
-    const today = new Date();
-    const birth = new Date(birthDate);
-    let age = today.getFullYear() - birth.getFullYear();
-    const m = today.getMonth() - birth.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
-    return age;
+  // ── Child helpers ──────────────────────────────────────
+  childTypeLabel(birthDate: string): string {
+    if (!birthDate) return '';
+    const age = this.svc.calcAge(birthDate);
+    if (age >= 0 && age < 4)   return 'פעוט (0–4)';
+    if (age >= 4 && age <= 18) return 'ילד (4–18)';
+    return '';
   }
 
-  currentYear(): number {
-    return new Date().getFullYear();
+  onDateInput(event: Event, target: any, field: string): void {
+    const input = event.target as HTMLInputElement;
+    const val = input.value;
+    if (!val) return;
+    const parts = val.split('-');
+    if (parts[0] && parts[0].length > 4) {
+      parts[0] = parts[0].slice(0, 4);
+      const corrected = parts.join('-');
+      input.value = corrected;
+      target[field] = corrected;
+    }
   }
 
+  // ── Dropdown helpers ───────────────────────────────────
   @HostListener('document:click')
   closeAllDropdowns(): void {
     this.openDropdowns.clear();
@@ -375,62 +200,49 @@ export class AppComponent implements OnInit {
     return this.openDropdowns.has(childId);
   }
 
-  getSelectedInstitutions(child: SimulatorChild): EducationInstitution[] {
-    return EDUCATION_INSTITUTIONS.filter(inst =>
-      child.selectedInstitutions.includes(inst.key)
-    );
-  }
-
-  getChildEducationTotal(child: SimulatorChild): number {
-    return this.getSelectedInstitutions(child).reduce((sum, inst) => sum + inst.cost, 0);
-  }
-
-  get totalEducationCost(): number {
-    return this.simulator.children.reduce((sum, child) =>
-      sum + this.getChildEducationTotal(child), 0
-    );
-  }
-
-  onDateInput(event: Event, target: any, field: string): void {
-    const input = event.target as HTMLInputElement;
-    const val = input.value;
-    if (!val) return;
-    const parts = val.split('-');
-    if (parts[0] && parts[0].length > 4) {
-      parts[0] = parts[0].slice(0, 4);
-      const corrected = parts.join('-');
-      input.value = corrected;
-      target[field] = corrected;
-    }
-  }
-
-  childTypeLabel(birthDate: string): string {
-    if (!birthDate) return '';
-    const age = this.calcAge(birthDate);
-    if (age >= 0 && age < 4)   return 'פעוט (0–4)';
-    if (age >= 4 && age <= 18) return 'ילד (4–18)';
-    return '';
-  }
-
-  // ── Simulator methods ──────────────────────────────────
-
+  // ── Institution UI ─────────────────────────────────────
   getMandatorySelectedCount(childIndex: number): number {
-    const keys = this.mandatoryInstitutions.map(i => i.key);
+    const keys = this.svc.mandatoryInstitutions.map(i => i.key);
     return (this.simulator.children[childIndex]?.selectedInstitutions ?? []).filter(k => keys.includes(k)).length;
   }
 
   getOptionalSelectedCount(childIndex: number): number {
-    const keys = this.optionalInstitutions.map(i => i.key);
+    const keys = this.svc.optionalInstitutions.map(i => i.key);
     return (this.simulator.children[childIndex]?.selectedInstitutions ?? []).filter(k => keys.includes(k)).length;
   }
 
+  isInstitutionSelected(childIndex: number, key: string): boolean {
+    return this.simulator.children[childIndex]?.selectedInstitutions.includes(key) ?? false;
+  }
+
+  toggleInstitution(childIndex: number, key: string): void {
+    const child = this.simulator.children[childIndex];
+    if (!child) return;
+    const inst = this.svc.educationInstitutions.find(i => i.key === key);
+    if (!inst) return;
+    const wasSelected = child.selectedInstitutions.includes(key);
+    const categoryKeys = this.svc.educationInstitutions.filter(i => i.category === inst.category).map(i => i.key);
+    child.selectedInstitutions = child.selectedInstitutions.filter(k => !categoryKeys.includes(k));
+    if (!wasSelected) {
+      child.selectedInstitutions.push(key);
+    }
+    this.openDropdowns.delete(child.id + '-' + inst.category);
+  }
+
+  get totalEducationCost(): number {
+    return this.simulator.children.reduce((sum, child) =>
+      sum + this.svc.getChildEducationTotal(child), 0
+    );
+  }
+
+  // ── CRUD ───────────────────────────────────────────────
   resetSimulator(): void {
     this.simulator = {
       adults: [{ id: 'a1', name: '', birthDate: '', netSalary: 0, status: 'employee', alsoWorker: false }],
       children: [],
     };
     this.openDropdowns.clear();
-    this.partD = { communication: 100, water: 0, electricity: 0, extraExpenses: [] };
+    this.partD = { communication: 100, water: 0, electricity: 0, arnona: 0, extraExpenses: [] };
   }
 
   addSimulatorAdult(): void {
@@ -462,148 +274,53 @@ export class AppComponent implements OnInit {
     this.simulator.children.splice(index, 1);
   }
 
-  isInstitutionSelected(childIndex: number, key: string): boolean {
-    return this.simulator.children[childIndex]?.selectedInstitutions.includes(key) ?? false;
+  // ── Part D ─────────────────────────────────────────────
+  addPartDExpense(): void {
+    this.partD.extraExpenses.push({ name: '', amount: 0 });
   }
 
-  toggleInstitution(childIndex: number, key: string): void {
-    const child = this.simulator.children[childIndex];
-    if (!child) return;
-    const inst = EDUCATION_INSTITUTIONS.find(i => i.key === key);
-    if (!inst) return;
-    const wasSelected = child.selectedInstitutions.includes(key);
-    const categoryKeys = EDUCATION_INSTITUTIONS.filter(i => i.category === inst.category).map(i => i.key);
-    child.selectedInstitutions = child.selectedInstitutions.filter(k => !categoryKeys.includes(k));
-    if (!wasSelected) {
-      child.selectedInstitutions.push(key);
-    }
-    // Close the dropdown after selection
-    this.openDropdowns.delete(child.id + '-' + inst.category);
+  removePartDExpense(i: number): void {
+    this.partD.extraExpenses.splice(i, 1);
   }
 
-  // ── Calculation ────────────────────────────────────────
+  // ── Comparison ─────────────────────────────────────────
+  get comparisonPastTotal(): number {
+    return this.comparison.expenses.reduce((s, e) => s + (e.pastAmount || 0), 0);
+  }
 
-  get simulatorResult(): SimulationResult | null {
-    const adults = this.simulator.adults;
-    if (!adults.some(a => this.getAdultTotalIncome(a) > 0)) return null;
+  get comparisonNewTotal(): number {
+    return this.comparison.expenses.reduce((s, e) => s + (e.newAmount || 0), 0);
+  }
 
-    // ── Step A: Net Income ────────────────────────────────
-    const adultIncomes = adults.map(a => ({
-      name:       a.name || 'מבוגר',
-      pension:    this.getRetireePension(a),
-      workSalary: (a.status === 'employee' || a.alsoWorker) ? (a.netSalary || 0) : 0,
-      status:     a.status,
-    }));
+  addComparisonExpense(): void {
+    this.comparison.expenses.push({ name: '', pastAmount: 0, newAmount: 0 });
+  }
 
-    const totalNetSalary = adultIncomes.reduce((sum, a) => sum + a.pension + a.workSalary, 0);
+  removeComparisonExpense(index: number): void {
+    this.comparison.expenses.splice(index, 1);
+  }
 
-    const childCount = this.simulator.children.length;
-    let childAllowance = 0;
-    if (childCount >= 1) childAllowance += 173;
-    if (childCount >= 2) childAllowance += 219;
-    if (childCount >= 3) childAllowance += 219;
-    if (childCount >= 4) childAllowance += 219;
-    if (childCount >= 5) childAllowance += 173 * (childCount - 4);
+  // ── Misc ───────────────────────────────────────────────
+  getNewHealthCap(finalDisposableIncome: number): number {
+    return Math.floor((finalDisposableIncome || 0) * 0.15);
+  }
 
-    const btlAllowance = this.btlAllowance;
-    const communityTaxTotal = adults.length * 910;  // 850 קהילה + 60 עזרה הדדית
-    const grossIncome = totalNetSalary + childAllowance + btlAllowance;
-    const netIncome   = grossIncome - communityTaxTotal;
-
-    // ── Step B: Safety Net ────────────────────────────────
-    const adultSafetyNets: { name: string; amount: number; reason: string }[] = [];
-    for (const adult of adults) {
-      let amount: number;
-      let reason: string;
-      if (adult.status === 'singleRetiree') {
-        amount = 5427; reason = 'גמלאי/ת יחיד/ה';
-      } else if (adult.status === 'retiree') {
-        amount = 5427; reason = 'גמלאי/ת';
-      } else {
-        amount = 6248;  reason = 'חבר/ת עובד/ת';
-      }
-      adultSafetyNets.push({ name: adult.name || 'מבוגר', amount, reason });
+  onHealthAmountInput(event: Event, exp: ComparisonExpense, finalDisposableIncome: number): void {
+    const input = event.target as HTMLInputElement;
+    const cap = this.getNewHealthCap(finalDisposableIncome);
+    let val = parseFloat(input.value) || 0;
+    if (cap > 0 && val > cap) {
+      val = cap;
+      input.value = cap.toString();
     }
+    exp.newAmount = val;
+  }
 
-    const childSafetyNets: { name: string; type: string; amount: number }[] = [];
-    for (const child of this.simulator.children) {
-      if (!child.birthDate) continue;
-      const age = this.calcAge(child.birthDate);
-      if (age >= 0 && age < 4) {
-        childSafetyNets.push({ name: child.name || 'ילד/ה', type: 'פעוט (0–4)', amount: 2066 });
-      } else if (age >= 4 && age <= 18) {
-        childSafetyNets.push({ name: child.name || 'ילד/ה', type: 'ילד (4–18)',  amount: 1562 });
-      }
-    }
+  stepBadge(n: number): string {
+    return ['א', 'ב', 'ג', 'ד', 'ה'][n - 1] ?? '';
+  }
 
-    const safetyNetTotal =
-      adultSafetyNets.reduce((s, a) => s + a.amount, 0) +
-      childSafetyNets.reduce((s, c) => s + c.amount, 0);
-
-    // Safety net top-up: compared against gross income (before community deductions)
-    const safetyNetTopUp = Math.max(0, safetyNetTotal - grossIncome);
-
-    // ── Progressive tax ────────────────────────────────────
-    const taxableBase = Math.max(0, netIncome - safetyNetTotal);
-    const taxBreakdown: { tier: string; base: number; tax: number }[] = [];
-    let mutualSolidarityTax = 0;
-
-    if (taxableBase > 0) {
-      const b1 = Math.min(taxableBase, 4000);
-      const t1 = b1 * 0.1;
-      taxBreakdown.push({ tier: '10% על 4,000 ₪ הראשונים', base: b1, tax: t1 });
-      mutualSolidarityTax += t1;
-    }
-    if (taxableBase > 4000) {
-      const b2 = Math.min(taxableBase - 4000, 4000);
-      const t2 = b2 * 0.2;
-      taxBreakdown.push({ tier: '20% על 4,001–8,000 ₪', base: b2, tax: t2 });
-      mutualSolidarityTax += t2;
-    }
-    if (taxableBase > 8000) {
-      const b3 = taxableBase - 8000;
-      const t3 = b3 * 0.3;
-      taxBreakdown.push({ tier: '30% מעל 8,000 ₪', base: b3, tax: t3 });
-      mutualSolidarityTax += t3;
-    }
-    mutualSolidarityTax = Math.min(mutualSolidarityTax, 4000);
-
-    // disposableIncome includes safety net top-up
-    const disposableIncome = netIncome - mutualSolidarityTax + safetyNetTopUp;
-
-    // ── Step C: Education ──────────────────────────────────
-    const childEducationDetails: {
-      name: string;
-      institutions: { name: string; cost: number }[];
-      totalCost: number;
-    }[] = [];
-    let grossEducationCost = 0;
-
-    for (const child of this.simulator.children) {
-      const selected = EDUCATION_INSTITUTIONS.filter(inst =>
-        child.selectedInstitutions.includes(inst.key)
-      );
-      const totalCost = selected.reduce((s, inst) => s + inst.cost, 0);
-      grossEducationCost += totalCost;
-      childEducationDetails.push({
-        name: child.name || 'ילד/ה',
-        institutions: selected.map(i => ({ name: i.name, cost: i.cost })),
-        totalCost,
-      });
-    }
-
-    const familyPaymentCap    = Math.max(0, disposableIncome * 0.25);
-    const actualEducationCost = Math.min(grossEducationCost, familyPaymentCap);
-    const kibbutzSubsidy      = Math.max(0, grossEducationCost - actualEducationCost);
-    const partDTotal          = this.partDTotal;
-    const finalDisposableIncome = disposableIncome - actualEducationCost - partDTotal;
-
-    return {
-      adultIncomes, totalNetSalary, childAllowance, btlAllowance, communityTaxTotal, netIncome,
-      adultSafetyNets, childSafetyNets, safetyNetTotal, safetyNetTopUp,
-      taxableBase, taxBreakdown, mutualSolidarityTax, disposableIncome,
-      childEducationDetails, grossEducationCost,
-      familyPaymentCap, actualEducationCost, kibbutzSubsidy, partDTotal, finalDisposableIncome,
-    };
+  currentYear(): number {
+    return new Date().getFullYear();
   }
 }
