@@ -374,12 +374,12 @@
               <!-- B-2: Solidarity Tax -->
               <div class="result-sub-step">
                 <div class="result-sub-step-header" (click)="stepB2Open = !stepB2Open">
-                  <span>מס ערבות הדדית</span>
+                  <span>{{ r.safetyNetTopUp > 0 ? 'השלמה לרשת ביטחון' : 'מס ערבות הדדית' }}</span>
                   <div class="step-title-right">
                     @if (r.mutualSolidarityTax > 0) {
                       <span class="step-summary val-negative">({{ r.mutualSolidarityTax | number:'1.0-0' }}) ₪</span>
                     } @else if (r.safetyNetTopUp > 0) {
-                      <span class="step-summary val-positive">(השלמה לרשת ביטחון) {{ r.safetyNetTopUp | number:'1.0-0' }} ₪</span>
+                      <span class="step-summary val-positive">{{ r.safetyNetTopUp | number:'1.0-0' }} ₪</span>
                     } @else {
                       <span class="step-summary">אין מס</span>
                     }
