@@ -879,6 +879,88 @@ $cmp-cols: 2fr 1.4fr 1.4fr 36px;
   }
 }
 
+// ── Result sub-steps (inside Step B) ──────────────────
+.result-sub-step {
+  border: 1px solid $gray-200;
+  border-radius: $radius-sm;
+  margin-top: 0.75rem;
+  overflow: hidden;
+}
+
+.result-sub-step-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.9rem;
+  background: $gray-50;
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: $accent;
+
+  &:hover { opacity: 0.85; }
+}
+
+.result-sub-step-body {
+  .result-rows {
+    margin: 0;
+    border: none;
+    border-top: 1px solid $gray-200;
+    border-radius: 0;
+  }
+}
+
+.result-sub-step-final {
+  .result-row {
+    padding: 0.6rem 0.9rem;
+    border: none;
+  }
+}
+
+// ── Part D editable inputs ─────────────────────────────
+.part-d-editable {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.part-d-input {
+  width: 90px;
+  padding: 0.3rem 0.5rem;
+  border: 1.5px solid $gray-200;
+  border-radius: $radius-sm;
+  font-family: inherit;
+  font-size: 0.88rem;
+  text-align: right;
+  direction: ltr;
+  background: $white;
+  color: $gray-800;
+
+  &:focus { outline: none; border-color: $primary-light; }
+}
+
+.part-d-currency {
+  font-size: 0.88rem;
+  color: $gray-600;
+  font-weight: 600;
+}
+
+.part-d-name-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.3rem 0.5rem;
+  border: 1.5px solid $gray-200;
+  border-radius: $radius-sm;
+  font-family: inherit;
+  font-size: 0.88rem;
+  text-align: right;
+  background: $white;
+  color: $gray-800;
+
+  &:focus { outline: none; border-color: $primary-light; }
+}
+
 .btl-rate-row {
   display: flex;
   align-items: center;

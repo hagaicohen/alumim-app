@@ -58,6 +58,7 @@ interface SimulationResult {
   familyPaymentCap: number;
   actualEducationCost: number;
   kibbutzSubsidy: number;
+  partDTotal: number;
   finalDisposableIncome: number;
 }
 
@@ -149,19 +150,27 @@ export class AppComponent implements OnInit {
   btlLoading = false;
   stepAOpen = false;
   stepBOpen = false;
+  stepB1Open = false;
+  stepB2Open = false;
   stepCOpen = false;
+  stepDOpen = false;
+
+  partD = {
+    communication: 100,
+    water:         0,
+    electricity:   0,
+    extraExpenses: [] as { name: string; amount: number }[],
+  };
 
   comparison = {
     show: false,
     personalBudget: 0,
     expenses: [
-      { name: 'דיור',          pastAmount: 0, newAmount: 0 },
-      { name: 'מזון',          pastAmount: 0, newAmount: 0 },
-      { name: 'תחבורה / רכב', pastAmount: 0, newAmount: 0 },
-      { name: 'בריאות',        pastAmount: 0, newAmount: 0 },
-      { name: 'לבוש',          pastAmount: 0, newAmount: 0 },
-      { name: 'פנאי ותרבות',  pastAmount: 0, newAmount: 0 },
-      { name: 'הוצאות אחרות', pastAmount: 0, newAmount: 0 },
+      { name: 'חדר אוכל',                              pastAmount: 0, newAmount: 0 },
+      { name: 'כלבו',                                  pastAmount: 0, newAmount: 0 },
+      { name: 'רכב',                                   pastAmount: 0, newAmount: 0 },
+      { name: 'הוצאות בריאות מעבר לביטוחים (עד 15%)', pastAmount: 0, newAmount: 0 },
+      { name: 'אשראי',                                 pastAmount: 0, newAmount: 0 },
     ] as ComparisonExpense[],
   };
 
@@ -179,6 +188,47 @@ export class AppComponent implements OnInit {
 
   removeComparisonExpense(index: number): void {
     this.comparison.expenses.splice(index, 1);
+  }
+
+  // ── Part D ─────────────────────────────────────────────
+
+  get partDNursingInsurance(): number {
+    return this.simulator.adults.length * 50;
+  }
+
+  get partDPhoenixInsurance(): number {
+    let total = 0;
+    for (const adult of this.simulator.adults) {
+      if (!adult.birthDate) continue;
+      const age = this.calcAge(adult.birthDate);
+      if (age >= 70)      total += 141.82;
+      else if (age >= 51) total += 80.63;
+      else                total += 63.27;
+    }
+    let kidCount = 0;
+    for (const child of this.simulator.children) {
+      if (kidCount >= 2) break;
+      if (!child.birthDate) continue;
+      if (this.calcAge(child.birthDate) < 21) { total += 22.98; kidCount++; }
+    }
+    return Math.round(total * 100) / 100;
+  }
+
+  get partDTotal(): number {
+    return this.partDNursingInsurance
+      + this.partDPhoenixInsurance
+      + (this.partD.communication || 0)
+      + (this.partD.water || 0)
+      + (this.partD.electricity || 0)
+      + this.partD.extraExpenses.reduce((s, e) => s + (e.amount || 0), 0);
+  }
+
+  addPartDExpense(): void {
+    this.partD.extraExpenses.push({ name: '', amount: 0 });
+  }
+
+  removePartDExpense(i: number): void {
+    this.partD.extraExpenses.splice(i, 1);
   }
 
   ngOnInit(): void {
@@ -380,6 +430,7 @@ export class AppComponent implements OnInit {
       children: [],
     };
     this.openDropdowns.clear();
+    this.partD = { communication: 100, water: 0, electricity: 0, extraExpenses: [] };
   }
 
   addSimulatorAdult(): void {
@@ -426,6 +477,8 @@ export class AppComponent implements OnInit {
     if (!wasSelected) {
       child.selectedInstitutions.push(key);
     }
+    // Close the dropdown after selection
+    this.openDropdowns.delete(child.id + '-' + inst.category);
   }
 
   // ── Calculation ────────────────────────────────────────
@@ -542,14 +595,15 @@ export class AppComponent implements OnInit {
     const familyPaymentCap    = Math.max(0, disposableIncome * 0.25);
     const actualEducationCost = Math.min(grossEducationCost, familyPaymentCap);
     const kibbutzSubsidy      = Math.max(0, grossEducationCost - actualEducationCost);
-    const finalDisposableIncome = disposableIncome - actualEducationCost;
+    const partDTotal          = this.partDTotal;
+    const finalDisposableIncome = disposableIncome - actualEducationCost - partDTotal;
 
     return {
       adultIncomes, totalNetSalary, childAllowance, btlAllowance, communityTaxTotal, netIncome,
       adultSafetyNets, childSafetyNets, safetyNetTotal, safetyNetTopUp,
       taxableBase, taxBreakdown, mutualSolidarityTax, disposableIncome,
       childEducationDetails, grossEducationCost,
-      familyPaymentCap, actualEducationCost, kibbutzSubsidy, finalDisposableIncome,
+      familyPaymentCap, actualEducationCost, kibbutzSubsidy, partDTotal, finalDisposableIncome,
     };
   }
 }
