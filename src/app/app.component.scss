@@ -941,6 +941,7 @@ $cmp-cols: 2fr 1.4fr 1.4fr 36px;
   color: $accent;
 
   &:hover { opacity: 0.85; }
+  &.no-toggle { cursor: default; &:hover { opacity: 1; } }
 }
 
 .result-sub-step-body {

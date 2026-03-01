@@ -373,7 +373,7 @@
 
               <!-- B-2: Solidarity Tax -->
               <div class="result-sub-step">
-                <div class="result-sub-step-header" (click)="stepB2Open = !stepB2Open">
+                <div class="result-sub-step-header" [class.no-toggle]="r.safetyNetTopUp > 0" (click)="r.safetyNetTopUp === 0 && (stepB2Open = !stepB2Open)">
                   <span>{{ r.safetyNetTopUp > 0 ? 'השלמה לרשת ביטחון' : 'מס ערבות הדדית' }}</span>
                   <div class="step-title-right">
                     @if (r.mutualSolidarityTax > 0) {
@@ -383,23 +383,19 @@
                     } @else {
                       <span class="step-summary">אין מס</span>
                     }
-                    <span class="step-arrow">{{ stepB2Open ? '▲' : '▼' }}</span>
+                    @if (r.safetyNetTopUp === 0) {
+                      <span class="step-arrow">{{ stepB2Open ? '▲' : '▼' }}</span>
+                    }
                   </div>
                 </div>
-                @if (stepB2Open) {
+                @if (stepB2Open && r.safetyNetTopUp === 0) {
                   <div class="result-sub-step-body">
                     <div class="result-rows">
                       @if (r.taxBreakdown.length === 0) {
-                        @if (r.safetyNetTopUp > 0) {
-                          <div class="result-row result-topup">
-                            <span>(השלמה לרשת ביטחון) {{ r.safetyNetTopUp | number:'1.0-0' }} ₪</span>
-                          </div>
-                        } @else {
-                          <div class="result-row result-zero-tax">
-                            <span>ההכנסה נמוכה מרשת הביטחון — אין מס</span>
-                            <span>0 ₪</span>
-                          </div>
-                        }
+                        <div class="result-row result-zero-tax">
+                          <span>ההכנסה נמוכה מרשת הביטחון — אין מס</span>
+                          <span>0 ₪</span>
+                        </div>
                       }
                       @for (tier of r.taxBreakdown; track $index) {
                         <div class="result-row">
