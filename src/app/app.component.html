@@ -378,6 +378,8 @@
                   <div class="step-title-right">
                     @if (r.mutualSolidarityTax > 0) {
                       <span class="step-summary val-negative">({{ r.mutualSolidarityTax | number:'1.0-0' }}) ₪</span>
+                    } @else if (r.safetyNetTopUp > 0) {
+                      <span class="step-summary val-positive">(השלמה לרשת ביטחון) {{ r.safetyNetTopUp | number:'1.0-0' }} ₪</span>
                     } @else {
                       <span class="step-summary">אין מס</span>
                     }
@@ -388,10 +390,16 @@
                   <div class="result-sub-step-body">
                     <div class="result-rows">
                       @if (r.taxBreakdown.length === 0) {
-                        <div class="result-row result-zero-tax">
-                          <span>ההכנסה נמוכה מרשת הביטחון — אין מס</span>
-                          <span>0 ₪</span>
-                        </div>
+                        @if (r.safetyNetTopUp > 0) {
+                          <div class="result-row result-topup">
+                            <span>(השלמה לרשת ביטחון) {{ r.safetyNetTopUp | number:'1.0-0' }} ₪</span>
+                          </div>
+                        } @else {
+                          <div class="result-row result-zero-tax">
+                            <span>ההכנסה נמוכה מרשת הביטחון — אין מס</span>
+                            <span>0 ₪</span>
+                          </div>
+                        }
                       }
                       @for (tier of r.taxBreakdown; track $index) {
                         <div class="result-row">
