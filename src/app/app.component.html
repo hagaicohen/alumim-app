@@ -21,57 +21,6 @@
         <button class="btn-reset" (click)="resetSimulator()">↺ איפוס</button>
       </div>
 
-      <!-- ── BTL Rates ── -->
-      @if (hasRetiree) {
-      <div class="sim-card btl-card">
-        <div class="sim-card-header btl-header" (click)="btlOpen = !btlOpen">
-          <h3 class="sim-card-title">קצבת ביטוח לאומי (זקנה)</h3>
-          <div class="btl-header-right">
-            <span class="btl-current-label">
-              @if (btlLoading) { <span class="btl-loading">טוען מביטוח לאומי...</span> }
-              @else { הרכב נוכחי: {{ btlRateLabel }} — <strong>{{ btlAllowance | number:'1.0-0' }} ₪</strong> }
-            </span>
-            <span class="btl-toggle-arrow">{{ btlOpen ? '▲' : '▼' }}</span>
-          </div>
-        </div>
-        @if (btlOpen) {
-          <div class="btl-rates-grid">
-            <div class="btl-rate-row">
-              <label>יחיד/ה</label>
-              <input type="number" [(ngModel)]="btlRates.single" min="0" />
-            </div>
-            <div class="btl-rate-row">
-              <label>יחיד/ה גיל 80+</label>
-              <input type="number" [(ngModel)]="btlRates.single80" min="0" />
-            </div>
-            <div class="btl-rate-row">
-              <label>זוג</label>
-              <input type="number" [(ngModel)]="btlRates.couple" min="0" />
-            </div>
-            <div class="btl-rate-row">
-              <label>זוג (גיל 80+)</label>
-              <input type="number" [(ngModel)]="btlRates.couple80" min="0" />
-            </div>
-            <div class="btl-rate-row">
-              <label>יחיד/ה + ילד</label>
-              <input type="number" [(ngModel)]="btlRates.singleChild1" min="0" />
-            </div>
-            <div class="btl-rate-row">
-              <label>זוג + ילד</label>
-              <input type="number" [(ngModel)]="btlRates.coupleChild1" min="0" />
-            </div>
-            <div class="btl-rate-row">
-              <label>יחיד/ה + 2 ילדים ויותר</label>
-              <input type="number" [(ngModel)]="btlRates.singleChild2" min="0" />
-            </div>
-            <div class="btl-rate-row">
-              <label>זוג + 2 ילדים ויותר</label>
-              <input type="number" [(ngModel)]="btlRates.coupleChild2" min="0" />
-            </div>
-          </div>
-        }
-      </div>
-      }
 
       <!-- ── Adults ── -->
       <div class="sim-card">
@@ -118,8 +67,8 @@
                     </select>
                   </div>
                   <div class="edit-field">
-                    <label>קצבה חודשית (₪)</label>
-                    <input type="number" [value]="getRetireePension(adult)" readonly class="readonly-input" />
+                    <label>קצבת זיקנה ₪ (מוערך)</label>
+                    <input type="number" [(ngModel)]="adult.btlMonthly" min="0" placeholder="2700" />
                   </div>
                   <div class="edit-field also-worker-field">
                     <label class="checkbox-label">
@@ -304,7 +253,7 @@
                 }
                 @if (r.btlAllowance > 0) {
                   <div class="result-row">
-                    <span>קצבת ביטוח לאומי — {{ btlRateLabel }}</span>
+                    <span>קצבת ביטוח לאומי</span>
                     <span class="val-positive">{{ r.btlAllowance | number:'1.0-0' }} ₪</span>
                   </div>
                 }
@@ -492,6 +441,25 @@
                   @if (phoenixOpen) {
                     <div class="part-d-phoenix-sub">
                       @for (item of partDPhoenixBreakdown; track $index) {
+                        <div>
+                          <span>{{ item.name }}</span>
+                          <span class="val-negative">({{ item.amount | number:'1.2-2' }}) ₪</span>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+                <div class="result-row part-d-phoenix-row">
+                  <div class="part-d-phoenix-header" (click)="healthInsuranceOpen = !healthInsuranceOpen">
+                    <span>ביטוח בריאות</span>
+                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                      <span class="val-negative">({{ partDHealthInsurance | number:'1.2-2' }}) ₪</span>
+                      <span class="step-arrow">{{ healthInsuranceOpen ? '▲' : '▼' }}</span>
+                    </div>
+                  </div>
+                  @if (healthInsuranceOpen) {
+                    <div class="part-d-phoenix-sub">
+                      @for (item of partDHealthInsuranceBreakdown; track $index) {
                         <div>
                           <span>{{ item.name }}</span>
                           <span class="val-negative">({{ item.amount | number:'1.2-2' }}) ₪</span>

@@ -15,13 +15,13 @@ export class AppComponent implements OnInit {
   private svc = inject(SimulatorService);
 
   // ── UI state ───────────────────────────────────────────
-  btlOpen    = false;
   stepAOpen  = false;
   stepB1Open = false;
   stepB2Open = false;
   stepCOpen  = false;
   stepDOpen  = false;
-  phoenixOpen = false;
+  phoenixOpen        = false;
+  healthInsuranceOpen = false;
   openDropdowns = new Set<string>();
 
   simulator: { adults: SimulatorAdult[]; children: SimulatorChild[] } = {
@@ -50,19 +50,16 @@ export class AppComponent implements OnInit {
     ] as ComparisonExpense[],
   };
 
-  // ── Service delegates (same public names — template unchanged) ────────────
-  get btlRates()              { return this.svc.btlRates; }
-  get btlLoading()            { return this.svc.btlLoading; }
+  // ── Service delegates ─────────────────────────────────────────────────────
   get educationInstitutions() { return this.svc.educationInstitutions; }
   get mandatoryInstitutions() { return this.svc.mandatoryInstitutions; }
   get optionalInstitutions()  { return this.svc.optionalInstitutions; }
-
-  get btlAllowance()          { return this.svc.getBtlAllowance(this.simulator.adults, this.simulator.children); }
-  get btlRateLabel()          { return this.svc.getBtlRateLabel(this.simulator.adults, this.simulator.children); }
   get partDNursingInsurance() { return this.svc.getPartDNursingInsurance(this.simulator.adults.length); }
   get partDPhoenixInsurance() { return this.svc.getPartDPhoenixInsurance(this.simulator.adults, this.simulator.children); }
   get partDTotal()              { return this.svc.getPartDTotal(this.simulator.adults, this.simulator.children, this.partD); }
-  get partDPhoenixBreakdown()   { return this.svc.getPartDPhoenixBreakdown(this.simulator.adults, this.simulator.children); }
+  get partDPhoenixBreakdown()         { return this.svc.getPartDPhoenixBreakdown(this.simulator.adults, this.simulator.children); }
+  get partDHealthInsurance()          { return this.svc.getHealthInsuranceTotal(this.simulator.adults, this.simulator.children); }
+  get partDHealthInsuranceBreakdown() { return this.svc.getHealthInsuranceBreakdown(this.simulator.adults, this.simulator.children); }
   get simulatorResult()       { return this.svc.calculate(this.simulator.adults, this.simulator.children, this.partD); }
 
   getRetireePension(adult: SimulatorAdult): number     { return this.svc.getRetireePension(adult); }
@@ -70,7 +67,6 @@ export class AppComponent implements OnInit {
 
   // ── Lifecycle ─────────────────────────────────────────
   ngOnInit(): void {
-    this.svc.loadBtlRates();
     this.loadFromUrl();
   }
 
@@ -128,12 +124,14 @@ export class AppComponent implements OnInit {
     } else {
       if (adult.status === 'employee') {
         adult.status = 'retiree';
+        adult.btlMonthly = adult.btlMonthly ?? 2700;
       }
     }
   }
 
   onRetireeTypeChange(adult: SimulatorAdult, value: string): void {
     adult.status = value as 'retiree' | 'singleRetiree';
+    adult.btlMonthly = adult.btlMonthly ?? 2700;
     if (value === 'singleRetiree' && this.simulator.adults.length > 1) {
       this.simulator.adults.splice(1, 1);
     }

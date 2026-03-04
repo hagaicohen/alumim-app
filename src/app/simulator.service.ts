@@ -1,5 +1,4 @@
-import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 
 // ── Interfaces ────────────────────────────────────────────────────────────────
 
@@ -10,6 +9,7 @@ export interface SimulatorAdult {
   netSalary: number;
   status: 'employee' | 'retiree' | 'singleRetiree';
   alsoWorker: boolean;
+  btlMonthly?: number;
 }
 
 export interface SimulatorChild {
@@ -91,32 +91,9 @@ export const EDUCATION_INSTITUTIONS: EducationInstitution[] = [
 
 @Injectable({ providedIn: 'root' })
 export class SimulatorService {
-  private http = inject(HttpClient);
-
   readonly educationInstitutions = EDUCATION_INSTITUTIONS;
   readonly mandatoryInstitutions = EDUCATION_INSTITUTIONS.filter(i => i.category === 'mandatory');
   readonly optionalInstitutions  = EDUCATION_INSTITUTIONS.filter(i => i.category === 'optional');
-
-  btlRates = {
-    single:       1838,
-    single80:     1941,
-    couple:       2762,
-    couple80:     2865,
-    singleChild1: 2419,
-    coupleChild1: 3343,
-    singleChild2: 3000,
-    coupleChild2: 3924,
-  };
-
-  btlLoading = false;
-
-  loadBtlRates(): void {
-    this.btlLoading = true;
-    this.http.get<typeof this.btlRates>('/.netlify/functions/btl-rates').subscribe({
-      next: (data) => { Object.assign(this.btlRates, data); this.btlLoading = false; },
-      error: ()     => { this.btlLoading = false; },
-    });
-  }
 
   calcAge(birthDate: string): number {
     if (!birthDate) return 0;
@@ -140,40 +117,10 @@ export class SimulatorService {
     return pension + workSalary;
   }
 
-  getBtlAllowance(adults: SimulatorAdult[], children: SimulatorChild[]): number {
-    const hasRetiree = adults.some(a => a.status === 'retiree' || a.status === 'singleRetiree');
-    if (!hasRetiree) return 0;
-    const adultCount = adults.length;
-    const childCount = children.filter(c => c.birthDate && this.calcAge(c.birthDate) < 18).length;
-    const isCouple   = adultCount >= 2;
-    const is80       = adults.some(a => a.birthDate && this.calcAge(a.birthDate) >= 80);
-    if (!isCouple) {
-      if (childCount === 0) return is80 ? this.btlRates.single80 : this.btlRates.single;
-      if (childCount === 1) return this.btlRates.singleChild1;
-      return this.btlRates.singleChild2;
-    } else {
-      if (childCount === 0) return is80 ? this.btlRates.couple80 : this.btlRates.couple;
-      if (childCount === 1) return this.btlRates.coupleChild1;
-      return this.btlRates.coupleChild2;
-    }
-  }
-
-  getBtlRateLabel(adults: SimulatorAdult[], children: SimulatorChild[]): string {
-    const hasRetiree = adults.some(a => a.status === 'retiree' || a.status === 'singleRetiree');
-    if (!hasRetiree) return '';
-    const adultCount = adults.length;
-    const childCount = children.filter(c => c.birthDate && this.calcAge(c.birthDate) < 18).length;
-    const isCouple   = adultCount >= 2;
-    const is80       = adults.some(a => a.birthDate && this.calcAge(a.birthDate) >= 80);
-    if (!isCouple) {
-      if (childCount === 0) return is80 ? 'יחיד/ה גיל 80+' : 'יחיד/ה';
-      if (childCount === 1) return 'יחיד/ה + ילד';
-      return 'יחיד/ה + 2 ילדים ויותר';
-    } else {
-      if (childCount === 0) return is80 ? 'זוג (גיל 80+)' : 'זוג';
-      if (childCount === 1) return 'זוג + ילד';
-      return 'זוג + 2 ילדים ויותר';
-    }
+  getBtlAllowance(adults: SimulatorAdult[]): number {
+    return adults
+      .filter(a => a.status === 'retiree' || a.status === 'singleRetiree')
+      .reduce((sum, a) => sum + (a.btlMonthly ?? 2700), 0);
   }
 
   getSelectedInstitutions(child: SimulatorChild): EducationInstitution[] {
@@ -228,9 +175,49 @@ export class SimulatorService {
     return items;
   }
 
+  private getHealthInsuranceRate(age: number): number {
+    if (age >= 1  && age <= 17) return 10.47;
+    if (age === 18)              return 21.6;
+    if (age >= 19 && age <= 38) return 38.99;
+    if (age === 39)              return 55.47;
+    if (age >= 40 && age <= 49) return 62.81;
+    if (age >= 50 && age <= 64) return 69.91;
+    if (age >= 65)               return 74.98;
+    return 0;
+  }
+
+  getHealthInsuranceTotal(adults: SimulatorAdult[], children: SimulatorChild[]): number {
+    let total = 0;
+    for (const adult of adults) {
+      if (!adult.birthDate) continue;
+      total += this.getHealthInsuranceRate(this.calcAge(adult.birthDate));
+    }
+    for (const child of children) {
+      if (!child.birthDate) continue;
+      total += this.getHealthInsuranceRate(this.calcAge(child.birthDate));
+    }
+    return Math.round(total * 100) / 100;
+  }
+
+  getHealthInsuranceBreakdown(adults: SimulatorAdult[], children: SimulatorChild[]): { name: string; amount: number }[] {
+    const items: { name: string; amount: number }[] = [];
+    for (const adult of adults) {
+      if (!adult.birthDate) continue;
+      const amount = this.getHealthInsuranceRate(this.calcAge(adult.birthDate));
+      if (amount > 0) items.push({ name: adult.name || 'מבוגר', amount });
+    }
+    for (const child of children) {
+      if (!child.birthDate) continue;
+      const amount = this.getHealthInsuranceRate(this.calcAge(child.birthDate));
+      if (amount > 0) items.push({ name: child.name || 'ילד/ה', amount });
+    }
+    return items;
+  }
+
   getPartDTotal(adults: SimulatorAdult[], children: SimulatorChild[], partD: PartDState): number {
     return this.getPartDNursingInsurance(adults.length)
       + this.getPartDPhoenixInsurance(adults, children)
+      + this.getHealthInsuranceTotal(adults, children)
       + (partD.communication || 0)
       + (partD.water || 0)
       + (partD.electricity || 0)
@@ -259,7 +246,7 @@ export class SimulatorService {
     if (childCount >= 4) childAllowance += 219;
     if (childCount >= 5) childAllowance += 173 * (childCount - 4);
 
-    const btlAllowance      = this.getBtlAllowance(adults, children);
+    const btlAllowance      = this.getBtlAllowance(adults);
     const communityTaxTotal = adults.length * 910;
     const grossIncome       = totalNetSalary + childAllowance + btlAllowance;
     const netIncome         = grossIncome - communityTaxTotal;
