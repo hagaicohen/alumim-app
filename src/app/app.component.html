@@ -68,11 +68,11 @@
                   </div>
                   <div class="edit-field">
                     <label>קצבה חודשית מהקיבוץ (₪)</label>
-                    <input appNumberFormat [(ngModel)]="adult.kibbutzPension" min="0" [placeholder]="adult.status === 'singleRetiree' ? '11396' : '8140'" />
+                    <input appNumberFormat [(ngModel)]="adult.kibbutzPension" min="0" [placeholder]="adult.status === 'singleRetiree' ? '11,396' : '8,140'" />
                   </div>
                   <div class="edit-field">
                     <label>קצבת זיקנה ₪ (מוערך)</label>
-                    <input appNumberFormat [(ngModel)]="adult.btlMonthly" min="0" placeholder="2700" />
+                    <input appNumberFormat [(ngModel)]="adult.btlMonthly" min="0" placeholder="2,700" />
                   </div>
                   <div class="edit-field also-worker-field">
                     <label class="checkbox-label">

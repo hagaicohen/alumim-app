@@ -37,8 +37,11 @@ export class NumberFormatDirective implements OnInit, OnDestroy {
 
   @HostListener('input')
   onInput() {
-    const raw = this.el.nativeElement.value.replace(/[^0-9]/g, '');
+    const input = this.el.nativeElement;
+    const raw = input.value.replace(/[^0-9]/g, '');
     const num = parseInt(raw, 10) || 0;
+    const formatted = num > 0 ? num.toLocaleString('en-US', { maximumFractionDigits: 0 }) : '';
+    input.value = formatted;
     this.ngModel?.update.emit(num);
   }
 
