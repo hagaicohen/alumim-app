@@ -9,6 +9,7 @@ export interface SimulatorAdult {
   netSalary: number;
   status: 'employee' | 'retiree' | 'singleRetiree';
   alsoWorker: boolean;
+  kibbutzPension?: number;
   btlMonthly?: number;
 }
 
@@ -106,8 +107,8 @@ export class SimulatorService {
   }
 
   getRetireePension(adult: SimulatorAdult): number {
-    if (adult.status === 'singleRetiree') return PENSION_SINGLE_RETIREE;
-    if (adult.status === 'retiree')       return PENSION_RETIREE;
+    if (adult.status === 'singleRetiree') return adult.kibbutzPension ?? PENSION_SINGLE_RETIREE;
+    if (adult.status === 'retiree')       return adult.kibbutzPension ?? PENSION_RETIREE;
     return 0;
   }
 

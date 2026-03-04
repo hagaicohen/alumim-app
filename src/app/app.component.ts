@@ -131,6 +131,7 @@ export class AppComponent implements OnInit {
 
   onRetireeTypeChange(adult: SimulatorAdult, value: string): void {
     adult.status = value as 'retiree' | 'singleRetiree';
+    adult.kibbutzPension = undefined;
     adult.btlMonthly = adult.btlMonthly ?? 2700;
     if (value === 'singleRetiree' && this.simulator.adults.length > 1) {
       this.simulator.adults.splice(1, 1);

@@ -67,6 +67,10 @@
                     </select>
                   </div>
                   <div class="edit-field">
+                    <label>קצבה חודשית מהקיבוץ (₪)</label>
+                    <input type="number" [(ngModel)]="adult.kibbutzPension" min="0" [placeholder]="adult.status === 'singleRetiree' ? '11396' : '8140'" />
+                  </div>
+                  <div class="edit-field">
                     <label>קצבת זיקנה ₪ (מוערך)</label>
                     <input type="number" [(ngModel)]="adult.btlMonthly" min="0" placeholder="2700" />
                   </div>
@@ -253,7 +257,7 @@
                 }
                 @if (r.btlAllowance > 0) {
                   <div class="result-row">
-                    <span>קצבת ביטוח לאומי</span>
+                    <span>קצבת זקנה (הערכה)</span>
                     <span class="val-positive">{{ r.btlAllowance | number:'1.0-0' }} ₪</span>
                   </div>
                 }
@@ -431,25 +435,6 @@
                   <span class="val-negative">({{ partDNursingInsurance | number:'1.0-0' }}) ₪</span>
                 </div>
                 <div class="result-row part-d-phoenix-row">
-                  <div class="part-d-phoenix-header" (click)="phoenixOpen = !phoenixOpen">
-                    <span>ביטוח בריאות פניקס</span>
-                    <div style="display:flex;align-items:center;gap:0.5rem;">
-                      <span class="val-negative">({{ partDPhoenixInsurance | number:'1.2-2' }}) ₪</span>
-                      <span class="step-arrow">{{ phoenixOpen ? '▲' : '▼' }}</span>
-                    </div>
-                  </div>
-                  @if (phoenixOpen) {
-                    <div class="part-d-phoenix-sub">
-                      @for (item of partDPhoenixBreakdown; track $index) {
-                        <div>
-                          <span>{{ item.name }}</span>
-                          <span class="val-negative">({{ item.amount | number:'1.2-2' }}) ₪</span>
-                        </div>
-                      }
-                    </div>
-                  }
-                </div>
-                <div class="result-row part-d-phoenix-row">
                   <div class="part-d-phoenix-header" (click)="healthInsuranceOpen = !healthInsuranceOpen">
                     <span>ביטוח בריאות</span>
                     <div style="display:flex;align-items:center;gap:0.5rem;">
@@ -460,6 +445,25 @@
                   @if (healthInsuranceOpen) {
                     <div class="part-d-phoenix-sub">
                       @for (item of partDHealthInsuranceBreakdown; track $index) {
+                        <div>
+                          <span>{{ item.name }}</span>
+                          <span class="val-negative">({{ item.amount | number:'1.2-2' }}) ₪</span>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+                <div class="result-row part-d-phoenix-row">
+                  <div class="part-d-phoenix-header" (click)="phoenixOpen = !phoenixOpen">
+                    <span>ביטוח בריאות פניקס</span>
+                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                      <span class="val-negative">({{ partDPhoenixInsurance | number:'1.2-2' }}) ₪</span>
+                      <span class="step-arrow">{{ phoenixOpen ? '▲' : '▼' }}</span>
+                    </div>
+                  </div>
+                  @if (phoenixOpen) {
+                    <div class="part-d-phoenix-sub">
+                      @for (item of partDPhoenixBreakdown; track $index) {
                         <div>
                           <span>{{ item.name }}</span>
                           <span class="val-negative">({{ item.amount | number:'1.2-2' }}) ₪</span>
