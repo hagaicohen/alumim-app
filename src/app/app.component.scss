@@ -1049,6 +1049,43 @@ $cmp-cols: 2fr 1.4fr 1.4fr 36px;
   }
 
   .part-d-input { width: 120px; }
+
+  .arnona-input { width: 80px !important; }
+}
+
+.arnona-grid {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.arnona-sep {
+  font-size: 0.85rem;
+  color: $gray-400;
+}
+
+.arnona-input {
+  flex: none;
+  box-sizing: border-box;
+  padding: 0.3rem 0.5rem;
+  border: 1.5px solid $gray-200;
+  border-radius: $radius-sm;
+  font-family: inherit;
+  font-size: 0.88rem;
+  text-align: right;
+  direction: ltr;
+  background: $white;
+  color: $gray-800;
+
+
+  &:focus { outline: none; border-color: $primary-light; }
+}
+
+.arnona-hint {
+  font-size: 0.78rem;
+  color: $gray-400;
+  font-weight: 400;
 }
 
 .part-d-name-input {

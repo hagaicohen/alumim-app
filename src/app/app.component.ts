@@ -33,7 +33,8 @@ export class AppComponent implements OnInit {
     communication: 100,
     water:         0,
     electricity:   0,
-    arnona:        0,
+    arnonaArea:    0,
+    arnonaRate:    2,
     extraExpenses: [],
   };
 
@@ -242,7 +243,7 @@ export class AppComponent implements OnInit {
       children: [],
     };
     this.openDropdowns.clear();
-    this.partD = { communication: 100, water: 0, electricity: 0, arnona: 0, extraExpenses: [] };
+    this.partD = { communication: 100, water: 0, electricity: 0, arnonaArea: 0, arnonaRate: 2, extraExpenses: [] };
   }
 
   addSimulatorAdult(): void {

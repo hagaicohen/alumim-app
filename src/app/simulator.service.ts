@@ -64,7 +64,8 @@ export interface PartDState {
   communication: number;
   water: number;
   electricity: number;
-  arnona: number;
+  arnonaArea: number;
+  arnonaRate: number;
   extraExpenses: { name: string; amount: number }[];
 }
 
@@ -233,7 +234,7 @@ export class SimulatorService {
       + (partD.communication || 0)
       + (partD.water || 0)
       + (partD.electricity || 0)
-      + (partD.arnona || 0)
+      + (partD.arnonaArea || 0) * (partD.arnonaRate || 0)
       + partD.extraExpenses.reduce((s, e) => s + (e.amount || 0), 0);
   }
 

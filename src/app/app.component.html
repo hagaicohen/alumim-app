@@ -528,12 +528,14 @@
                   </div>
                 </div>
                 <div class="result-row">
-                  <span>ארנונה</span>
+                  <span>ארנונה <span class="arnona-hint">(הזן מ"ר × תעריף למ"ר)</span></span>
                   <div class="part-d-editable">
-                    <div class="part-d-input-group">
-                      <input type="number" [(ngModel)]="partD.arnona" min="0" class="part-d-input" />
+                    <div class="arnona-grid">
+                      <input type="number" [(ngModel)]="partD.arnonaArea" min="0" class="arnona-input" style="width:90px" placeholder='מ"ר' />
+                      <span class="arnona-sep">×</span>
+                      <input type="number" [(ngModel)]="partD.arnonaRate" min="0" class="arnona-input" style="width:90px" placeholder='₪/מ"ר' />
                     </div>
-                    <span class="part-d-neg-val">({{ partD.arnona || 0 | number:'1.0-0' }}) ₪</span>
+                    <span class="part-d-neg-val">({{ (partD.arnonaArea || 0) * (partD.arnonaRate || 0) | number:'1.0-0' }}) ₪</span>
                   </div>
                 </div>
                 @for (exp of partD.extraExpenses; track $index; let i = $index) {
