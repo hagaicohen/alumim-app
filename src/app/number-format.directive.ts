@@ -41,8 +41,11 @@ export class NumberFormatDirective implements OnInit, OnDestroy {
     const raw = input.value.replace(/[^0-9]/g, '');
     const num = parseInt(raw, 10) || 0;
     const formatted = num > 0 ? num.toLocaleString('en-US', { maximumFractionDigits: 0 }) : '';
-    input.value = formatted;
     this.ngModel?.update.emit(num);
+    // Re-apply formatted display after Angular's change detection overwrites the value
+    setTimeout(() => {
+      if (this.focused) input.value = formatted;
+    }, 0);
   }
 
   @HostListener('blur')
