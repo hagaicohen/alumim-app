@@ -68,11 +68,11 @@
                   </div>
                   <div class="edit-field">
                     <label>קצבה חודשית מהקיבוץ (₪)</label>
-                    <input type="number" [(ngModel)]="adult.kibbutzPension" min="0" [placeholder]="adult.status === 'singleRetiree' ? '11396' : '8140'" />
+                    <input appNumberFormat [(ngModel)]="adult.kibbutzPension" min="0" [placeholder]="adult.status === 'singleRetiree' ? '11396' : '8140'" />
                   </div>
                   <div class="edit-field">
                     <label>קצבת זיקנה ₪ (מוערך)</label>
-                    <input type="number" [(ngModel)]="adult.btlMonthly" min="0" placeholder="2700" />
+                    <input appNumberFormat [(ngModel)]="adult.btlMonthly" min="0" placeholder="2700" />
                   </div>
                   <div class="edit-field also-worker-field">
                     <label class="checkbox-label">
@@ -85,7 +85,7 @@
                 @if (adult.status === 'employee' || adult.alsoWorker) {
                   <div class="edit-field">
                     <label>שכר נטו (₪)</label>
-                    <input type="number" [(ngModel)]="adult.netSalary" min="0" placeholder="0" />
+                    <input appNumberFormat [(ngModel)]="adult.netSalary" min="0" placeholder="0" />
                   </div>
                 }
               </div>
@@ -476,7 +476,7 @@
                   <span>תקשורת</span>
                   <div class="part-d-editable">
                     <div class="part-d-input-group">
-                      <input type="number" [(ngModel)]="partD.communication" min="0" class="part-d-input" />
+                      <input appNumberFormat [(ngModel)]="partD.communication" min="0" class="part-d-input" />
                     </div>
                     <span class="part-d-neg-val">({{ partD.communication || 0 | number:'1.0-0' }}) ₪</span>
                   </div>
@@ -485,7 +485,7 @@
                   <span>מים + ביוב</span>
                   <div class="part-d-editable">
                     <div class="part-d-input-group">
-                      <input type="number" [(ngModel)]="partD.water" min="0" class="part-d-input" />
+                      <input appNumberFormat [(ngModel)]="partD.water" min="0" class="part-d-input" />
                     </div>
                     <span class="part-d-neg-val">({{ partD.water || 0 | number:'1.0-0' }}) ₪</span>
                   </div>
@@ -494,7 +494,7 @@
                   <span>חשמל</span>
                   <div class="part-d-editable">
                     <div class="part-d-input-group">
-                      <input type="number" [(ngModel)]="partD.electricity" min="0" class="part-d-input" />
+                      <input appNumberFormat [(ngModel)]="partD.electricity" min="0" class="part-d-input" />
                     </div>
                     <span class="part-d-neg-val">({{ partD.electricity || 0 | number:'1.0-0' }}) ₪</span>
                   </div>
@@ -503,7 +503,7 @@
                   <span>ארנונה <span class="arnona-hint">(הזן מ"ר × תעריף למ"ר)</span></span>
                   <div class="part-d-editable">
                     <div class="arnona-grid">
-                      <input type="number" [(ngModel)]="partD.arnonaArea" min="0" class="arnona-input" style="width:90px" placeholder='מ"ר' />
+                      <input appNumberFormat [(ngModel)]="partD.arnonaArea" min="0" class="arnona-input" style="width:90px" placeholder='מ"ר' />
                       <span class="arnona-sep">×</span>
                       <input type="number" [(ngModel)]="partD.arnonaRate" min="0" class="arnona-input" style="width:90px" placeholder='₪/מ"ר' />
                     </div>
@@ -515,7 +515,7 @@
                     <input type="text" [(ngModel)]="exp.name" placeholder="שם הוצאה" class="part-d-name-input" />
                     <div class="part-d-editable">
                       <div class="part-d-input-group">
-                        <input type="number" [(ngModel)]="exp.amount" min="0" class="part-d-input" />
+                        <input appNumberFormat [(ngModel)]="exp.amount" min="0" class="part-d-input" />
                         <button class="btn-remove-x" (click)="removePartDExpense(i)" title="הסר">✕</button>
                       </div>
                       <span class="part-d-neg-val">({{ exp.amount || 0 | number:'1.0-0' }}) ₪</span>
@@ -563,7 +563,7 @@
                   <div class="cmp-col-name cmp-section-label">הכנסה חודשית</div>
                   <div class="cmp-col-past cmp-value-cell">
                     <span class="cmp-label-mobile">תקציב אישי (עבר)</span>
-                    <input type="number" [(ngModel)]="comparison.personalBudget" min="0" placeholder="0" class="cmp-input" />
+                    <input appNumberFormat [(ngModel)]="comparison.personalBudget" min="0" placeholder="0" class="cmp-input" />
                   </div>
                   <div class="cmp-col-new cmp-value-cell">
                     <span class="cmp-label-mobile">הכנסה פנויה (הפרטה)</span>
@@ -583,7 +583,7 @@
                       @if (exp.name.includes('בריאות')) {
                         <input type="number" value="0" disabled class="cmp-input cmp-input-blocked" />
                       } @else {
-                        <input type="number" [(ngModel)]="exp.pastAmount" min="0" placeholder="0" class="cmp-input" />
+                        <input appNumberFormat [(ngModel)]="exp.pastAmount" min="0" placeholder="0" class="cmp-input" />
                       }
                     </div>
                     <div class="cmp-col-new cmp-value-cell">
@@ -594,7 +594,7 @@
                                (input)="onHealthAmountInput($event, exp, r.disposableIncome)"
                                min="0" placeholder="0" class="cmp-input" />
                       } @else {
-                        <input type="number" [(ngModel)]="exp.newAmount" min="0" placeholder="0" class="cmp-input" />
+                        <input appNumberFormat [(ngModel)]="exp.newAmount" min="0" placeholder="0" class="cmp-input" />
                       }
                     </div>
                     <div class="cmp-col-action">

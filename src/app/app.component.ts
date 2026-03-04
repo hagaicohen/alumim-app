@@ -2,12 +2,13 @@ import { Component, HostListener, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { SimulatorService } from './simulator.service';
+import { NumberFormatDirective } from './number-format.directive';
 import type { SimulatorAdult, SimulatorChild, ComparisonExpense, PartDState } from './simulator.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule, NumberFormatDirective],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
 })
