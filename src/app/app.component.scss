@@ -27,6 +27,9 @@ $shadow-md:      0 4px 16px rgba(0,0,0,0.1);
   background: linear-gradient(135deg, $accent 0%, $primary 100%);
   color: $white;
   box-shadow: $shadow-md;
+  position: sticky;
+  top:0;
+  z-index: 100;
 }
 .header-content {
   max-width: 960px;
@@ -58,6 +61,9 @@ $shadow-md:      0 4px 16px rgba(0,0,0,0.1);
   text-align: center;
   padding: 1rem;
   font-size: 0.8rem;
+  position: sticky;
+  bottom: 0;
+  z-index: 100;
 }
 
 // ── Shared form elements ───────────────────────────────
@@ -1054,7 +1060,7 @@ $cmp-cols: 2fr 1.4fr 1.4fr 36px;
 }
 
 .arnona-grid {
-  display: flex;
+display: flex;
   align-items: center;
   gap: 0.35rem;
   flex-shrink: 0;
