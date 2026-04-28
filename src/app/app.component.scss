@@ -1186,16 +1186,22 @@ display: flex;
   bottom: 0;
   z-index: 200;
 
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-
   background: linear-gradient(135deg, $accent 0%, $primary 100%);
   color: $white;
 
   border-top: 2px solid rgba(255,255,255,0.15);
   box-shadow: 0 -4px 12px rgba(0,0,0,0.15);
 
-  padding: 0.6rem 0.5rem;
+  padding: 0.6rem 0; // 🔥 בלי padding צדדי
+}
+
+.cmp-footer-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
 }
 
 .cmp-footer-item {
@@ -1241,4 +1247,15 @@ display: flex;
 
 .cmp-diff.negative {
   color: #ef4444; // אדום
+}
+
+/* קו הפרדה בין האייטמים */
+.cmp-footer-item:not(:last-child) {
+  border-left: 1px solid rgba(255,255,255,0.2);
+  padding-left: 0.75rem;
+}
+
+/* שומר על ריווח גם בצד השני */
+.cmp-footer-item:not(:first-child) {
+  padding-right: 0.75rem;
 }

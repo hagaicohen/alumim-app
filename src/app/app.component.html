@@ -667,66 +667,65 @@
   </footer> -->
 
 <div class="cmp-footer">
+  <div class="cmp-footer-inner">
 
-  <!-- הכנסה פנויה -->
-  <div class="cmp-footer-item">
-    <div class="cmp-footer-label">הכנסה פנויה</div>
-    <div class="cmp-footer-value">
-      {{ simulatorResult?.finalDisposableIncome ?? 0 | number:'1.0-0' }}&nbsp;₪
+    <!-- הכנסה פנויה -->
+    <div class="cmp-footer-item">
+      <div class="cmp-footer-label">הכנסה פנויה</div>
+      <div class="cmp-footer-value">
+        {{ simulatorResult?.finalDisposableIncome ?? 0 | number:'1.0-0' }}&nbsp;₪
+      </div>
     </div>
-  </div>
 
-  <!-- הפרש הוצאות -->
-  <div class="cmp-footer-item">
-    <div class="cmp-footer-label">הפרש הוצאות</div>
+    <!-- הפרש הוצאות -->
+    <div class="cmp-footer-item">
+      <div class="cmp-footer-label">הפרש הוצאות</div>
 
-    <div class="cmp-footer-value cmp-diff"
-         [class.positive]="((comparisonNewTotal || 0) - (comparisonPastTotal || 0)) > 0"
-         [class.negative]="((comparisonNewTotal || 0) - (comparisonPastTotal || 0)) < 0">
+      <div class="cmp-footer-value cmp-diff"
+           [class.positive]="((comparisonNewTotal || 0) - (comparisonPastTotal || 0)) > 0"
+           [class.negative]="((comparisonNewTotal || 0) - (comparisonPastTotal || 0)) < 0">
 
-      <span class="cmp-arrow">
-        {{
-          ((comparisonNewTotal || 0) - (comparisonPastTotal || 0)) > 0 ? '▲' :
-          ((comparisonNewTotal || 0) - (comparisonPastTotal || 0)) < 0 ? '▼' : ''
-        }}
-      </span>
+        <span class="cmp-arrow">
+          {{
+            ((comparisonNewTotal || 0) - (comparisonPastTotal || 0)) > 0 ? '▲' :
+            ((comparisonNewTotal || 0) - (comparisonPastTotal || 0)) < 0 ? '▼' : ''
+          }}
+        </span>
 
-      <span class="cmp-value">
-        {{ ((comparisonNewTotal || 0) - (comparisonPastTotal || 0)) | number:'1.0-0' }}
-      </span>
+        <span class="cmp-value">
+          {{ ((comparisonNewTotal || 0) - (comparisonPastTotal || 0)) | number:'1.0-0' }}
+        </span>
 
-      <span class="cmp-currency">₪</span>
+        <span class="cmp-currency">₪</span>
+      </div>
     </div>
-  </div>
 
-  <!-- הפרש יתרה -->
-  <div class="cmp-footer-item">
-    <div class="cmp-footer-label">הפרש יתרה</div>
+    <!-- הפרש יתרה -->
+    <div class="cmp-footer-item">
+      <div class="cmp-footer-label">הפרש יתרה</div>
 
-    <div class="cmp-footer-value cmp-diff"
-         [class.positive]="(((simulatorResult?.finalDisposableIncome || 0) - (comparisonNewTotal || 0)) - ((comparison.personalBudget || 0) - (comparisonPastTotal || 0))) > 0"
-         [class.negative]="(((simulatorResult?.finalDisposableIncome || 0) - (comparisonNewTotal || 0)) - ((comparison.personalBudget || 0) - (comparisonPastTotal || 0))) < 0">
+      @let balanceDiff =
+        ((simulatorResult?.finalDisposableIncome || 0) - (comparisonNewTotal || 0))
+        -
+        ((comparison.personalBudget || 0) - (comparisonPastTotal || 0));
 
-      <span class="cmp-arrow">
-        {{
-          (((simulatorResult?.finalDisposableIncome || 0) - (comparisonNewTotal || 0)) - ((comparison.personalBudget || 0) - (comparisonPastTotal || 0))) > 0 ? '▲' :
-          (((simulatorResult?.finalDisposableIncome || 0) - (comparisonNewTotal || 0)) - ((comparison.personalBudget || 0) - (comparisonPastTotal || 0))) < 0 ? '▼' : ''
-        }}
-      </span>
+      <div class="cmp-footer-value cmp-diff"
+           [class.positive]="balanceDiff > 0"
+           [class.negative]="balanceDiff < 0">
 
-      <span class="cmp-value">
-        {{
-          (((simulatorResult?.finalDisposableIncome || 0) - (comparisonNewTotal || 0))
-          -
-          ((comparison.personalBudget || 0) - (comparisonPastTotal || 0)))
-          | number:'1.0-0'
-        }}
-      </span>
+        <span class="cmp-arrow">
+          {{ balanceDiff > 0 ? '▲' : balanceDiff < 0 ? '▼' : '' }}
+        </span>
 
-      <span class="cmp-currency">₪</span>
+        <span class="cmp-value">
+          {{ balanceDiff | number:'1.0-0' }}
+        </span>
+
+        <span class="cmp-currency">₪</span>
+      </div>
     </div>
-  </div>
 
-</div>  
+  </div>
+</div>
 
 </div>
