@@ -237,14 +237,39 @@ export class AppComponent implements OnInit {
   }
 
   // ── CRUD ───────────────────────────────────────────────
-  resetSimulator(): void {
-    this.simulator = {
-      adults: [{ id: 'a1', name: '', birthDate: '', netSalary: 0, status: 'employee', alsoWorker: false }],
-      children: [],
-    };
-    this.openDropdowns.clear();
-    this.partD = { communication: 100, water: 0, electricity: 0, arnonaArea: 0, arnonaRate: 2, extraExpenses: [] };
-  }
+ resetSimulator(): void {
+  // סימולטור
+  this.simulator = {
+    adults: [{ id: 'a1', name: '', birthDate: '', netSalary: 0, status: 'employee', alsoWorker: false }],
+    children: [],
+  };
+
+  // PART D
+  this.partD = {
+    communication: 100,
+    water: 0,
+    electricity: 0,
+    arnonaArea: 0,
+    arnonaRate: 2,
+    extraExpenses: [],
+  };
+
+  // 🔥 חשוב — איפוס comparison
+  this.comparison = {
+    show: false,
+    personalBudget: 0,
+    expenses: [
+      { name: 'חדר אוכל',                              pastAmount: 0, newAmount: 0 },
+      { name: 'כלבו',                                  pastAmount: 0, newAmount: 0 },
+      { name: 'רכב',                                   pastAmount: 0, newAmount: 0 },
+      { name: 'הוצאות בריאות מעבר לביטוחים (עד 15%)', pastAmount: 0, newAmount: 0 },
+      { name: 'אשראי',                                 pastAmount: 0, newAmount: 0 },
+    ]
+  };
+
+  // UI
+  this.openDropdowns.clear();
+}
 
   addSimulatorAdult(): void {
     if (this.simulator.adults.length >= 2) return;

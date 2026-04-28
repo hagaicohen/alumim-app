@@ -3,23 +3,31 @@
   <!-- Header -->
   <header class="app-header">
     <div class="header-content">
-      <div class="logo">
-        <img src="alumim.jpg" alt="סמל עלומים" class="logo-img" />
-        <div>
-          <h1 class="logo-title">עלומים</h1>
-          <p class="logo-sub">סימולטור הכנסה פנויה</p>
-        </div>
+  <div class="header-row">
+
+    <div class="logo">
+      <img src="alumim.jpg" alt="סמל עלומים" class="logo-img" />
+      <div>
+        <h1 class="logo-title">עלומים</h1>
+        <p class="logo-sub">סימולטור הכנסה פנויה</p>
       </div>
     </div>
+
+    <button class="btn-reset-header" (click)="resetSimulator()">
+    ↺ איפוס 
+    </button>
+
+  </div>
+</div>
   </header>
 
   <main class="main-content">
 
     <div class="simulator-container">
 
-      <div class="simulator-toolbar">
+      <!--<div class="simulator-toolbar">
         <button class="btn-reset" (click)="resetSimulator()">↺ איפוס</button>
-      </div>
+      </div>-->
 
 
       <!-- ── Adults ── -->
@@ -223,7 +231,11 @@
                 הכנסה מכלל המקורות
               </div>
               <div class="step-title-right">
-                @if (!stepAOpen) { <span class="step-summary">{{ r.netIncome + r.safetyNetTopUp | number:'1.0-0' }} ₪</span> }
+                @if (!stepAOpen) { 
+                  <span class="step-summary">
+                    {{ r.netIncome + r.safetyNetTopUp | number:'1.0-0' }}&nbsp;₪
+                  </span> 
+                }
                 <span class="step-arrow">{{ stepAOpen ? '▲' : '▼' }}</span>
               </div>
             </div>
@@ -650,8 +662,71 @@
 
   </main>
 
-  <footer class="app-footer">
+<!--  <footer class="app-footer">
     <p>עלומים &copy; {{ currentYear() }} &mdash; סימולטור הכנסה פנויה</p>
-  </footer>
+  </footer> -->
+
+<div class="cmp-footer">
+
+  <!-- הכנסה פנויה -->
+  <div class="cmp-footer-item">
+    <div class="cmp-footer-label">הכנסה פנויה</div>
+    <div class="cmp-footer-value">
+      {{ simulatorResult?.finalDisposableIncome ?? 0 | number:'1.0-0' }}&nbsp;₪
+    </div>
+  </div>
+
+  <!-- הפרש הוצאות -->
+  <div class="cmp-footer-item">
+    <div class="cmp-footer-label">הפרש הוצאות</div>
+
+    <div class="cmp-footer-value cmp-diff"
+         [class.positive]="((comparisonNewTotal || 0) - (comparisonPastTotal || 0)) > 0"
+         [class.negative]="((comparisonNewTotal || 0) - (comparisonPastTotal || 0)) < 0">
+
+      <span class="cmp-arrow">
+        {{
+          ((comparisonNewTotal || 0) - (comparisonPastTotal || 0)) > 0 ? '▲' :
+          ((comparisonNewTotal || 0) - (comparisonPastTotal || 0)) < 0 ? '▼' : ''
+        }}
+      </span>
+
+      <span class="cmp-value">
+        {{ ((comparisonNewTotal || 0) - (comparisonPastTotal || 0)) | number:'1.0-0' }}
+      </span>
+
+      <span class="cmp-currency">₪</span>
+    </div>
+  </div>
+
+  <!-- הפרש יתרה -->
+  <div class="cmp-footer-item">
+    <div class="cmp-footer-label">הפרש יתרה</div>
+
+    <div class="cmp-footer-value cmp-diff"
+         [class.positive]="(((simulatorResult?.finalDisposableIncome || 0) - (comparisonNewTotal || 0)) - ((comparison.personalBudget || 0) - (comparisonPastTotal || 0))) > 0"
+         [class.negative]="(((simulatorResult?.finalDisposableIncome || 0) - (comparisonNewTotal || 0)) - ((comparison.personalBudget || 0) - (comparisonPastTotal || 0))) < 0">
+
+      <span class="cmp-arrow">
+        {{
+          (((simulatorResult?.finalDisposableIncome || 0) - (comparisonNewTotal || 0)) - ((comparison.personalBudget || 0) - (comparisonPastTotal || 0))) > 0 ? '▲' :
+          (((simulatorResult?.finalDisposableIncome || 0) - (comparisonNewTotal || 0)) - ((comparison.personalBudget || 0) - (comparisonPastTotal || 0))) < 0 ? '▼' : ''
+        }}
+      </span>
+
+      <span class="cmp-value">
+        {{
+          (((simulatorResult?.finalDisposableIncome || 0) - (comparisonNewTotal || 0))
+          -
+          ((comparison.personalBudget || 0) - (comparisonPastTotal || 0)))
+          | number:'1.0-0'
+        }}
+      </span>
+
+      <span class="cmp-currency">₪</span>
+    </div>
+  </div>
+
+</div>  
 
 </div>

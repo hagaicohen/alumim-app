@@ -27,15 +27,45 @@ $shadow-md:      0 4px 16px rgba(0,0,0,0.1);
   background: linear-gradient(135deg, $accent 0%, $primary 100%);
   color: $white;
   box-shadow: $shadow-md;
-  position: sticky;
-  top:0;
+  position: sticky;  
   z-index: 100;
+  top: 0;
 }
 .header-content {
   max-width: 960px;
   margin: 0 auto;
   padding: 1.25rem 1.5rem;
 }
+
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.btn-reset-header {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white;
+
+  border-radius: 8px;
+  padding: 0.4rem 0.8rem;
+
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  transition: all 0.2s;
+}
+
+.btn-reset-header:hover {
+  background: rgba(255,255,255,0.25);
+}
+
+.btn-reset-header:active {
+  transform: scale(0.97);
+}
+
 .logo {
   display: flex;
   align-items: center;
@@ -61,9 +91,9 @@ $shadow-md:      0 4px 16px rgba(0,0,0,0.1);
   text-align: center;
   padding: 1rem;
   font-size: 0.8rem;
-  position: sticky;
-  bottom: 0;
+  position: sticky;  
   z-index: 100;
+  bottom: 0;
 }
 
 // ── Shared form elements ───────────────────────────────
@@ -924,6 +954,24 @@ $cmp-cols: 2fr 1.4fr 1.4fr 36px;
     .cmp-col-past   { grid-column: 1; grid-row: 2; }
     .cmp-col-new    { grid-column: 2; grid-row: 2; }
   }
+
+  .cmp-value-cell {
+    align-items: flex-end;
+    justify-content: flex-start;   // 🔥 זה הקריטי
+  }
+
+  .cmp-label-mobile {
+    text-align: right;
+    width: 100%;
+    margin-bottom: 2px;            // 🔧 מיישר לגובה זהה
+  }
+
+  .cmp-input,
+  .cmp-readonly-val {
+    min-height: 32px;             // 🔥 אחידות גובה בין input ל-span
+    display: flex;
+    align-items: center;
+  }
 }
 
 // ── Result sub-steps (inside Step B) ──────────────────
@@ -1133,3 +1181,64 @@ display: flex;
   }
 }
 
+.cmp-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 200;
+
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+
+  background: linear-gradient(135deg, $accent 0%, $primary 100%);
+  color: $white;
+
+  border-top: 2px solid rgba(255,255,255,0.15);
+  box-shadow: 0 -4px 12px rgba(0,0,0,0.15);
+
+  padding: 0.6rem 0.5rem;
+}
+
+.cmp-footer-item {
+  text-align: center;
+}
+
+.cmp-footer-label {
+  font-size: 0.7rem;
+  opacity: 0.8;
+  font-weight: 600;
+}
+
+.cmp-footer-value {
+  font-size: 1rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.cmp-diff {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  direction: ltr; // 🔥 כדי שהמינוס יהיה משמאל למספר
+}
+
+.cmp-arrow {
+  font-size: 0.75rem;
+}
+
+.cmp-value {
+  font-weight: 800;
+}
+
+.cmp-currency {
+  margin-right: 2px;
+}
+
+/* צבעים */
+.cmp-diff.positive {
+  color: #22c55e; // ירוק
+}
+
+.cmp-diff.negative {
+  color: #ef4444; // אדום
+}
